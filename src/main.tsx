@@ -442,12 +442,13 @@ export default function App() {
                 </div>
                 
                 <Button className="w-full gradient-purple text-white shadow-colored-purple hover:scale-[1.02] transition-all duration-200 group">
-                  <span>Open Teacher App</span>
+                  <span>Open Teacher App Test</span>
                   <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                 </Button>
               </CardContent>
             </Card>
 
+ś
             {/* Enhanced Mobile Parent App */}
             <Card className="relative overflow-hidden border-0 shadow-xl hover-lift glass-card group cursor-pointer"
                   onClick={() => setCurrentPortal('mobile-parent')}>
