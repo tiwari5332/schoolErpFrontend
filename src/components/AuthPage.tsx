@@ -471,17 +471,17 @@ export function AuthPage({ onLogin }: AuthPageProps) {
               </form>
 
               {/* Divider */}
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-white px-2 text-slate-500">OR CONTINUE WITH</span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Social Login */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* <div className="grid grid-cols-2 gap-3">
                 <Button 
                   type="button"
                   variant="outline" 
@@ -505,7 +505,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   </svg>
                   GitHub
                 </Button>
-              </div>
+              </div> */}
 
               {/* Toggle Login/Signup */}
               <div className="text-center pt-4 border-t border-slate-200">
