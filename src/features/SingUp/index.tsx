@@ -1,22 +1,22 @@
 import AuthLayout from "../../layout/AuthLayout";
-import LoginForm from "./Components/LoginForm";
 import { Card } from "../../components/ui/card";
 import { CardContent } from "../../components/ui/card";
 import ToggleSingupLogin from "../../components/ToggleSignup";
+import SignUpForm from "./Components/SignUpForm";
 import HeaderComponent from "../../components/HeaderComponent";
 
-const LoginFeature = () => {
+const SignUpFeature = () => {
   return <AuthLayout>
     <div className="flex items-center justify-center">
       <Card className="border-0 shadow-2xl glass-card w-full max-w-md">
-       <HeaderComponent heading="Welcome Back" subHeading="Sign in to access your EduTrio portal" />  
+        <HeaderComponent heading="Create an Account" subHeading="Join EduTrio and start your learning journey today!" />  
         <CardContent className="space-y-6">
-          <LoginForm />
-          <ToggleSingupLogin/>
+          <SignUpForm/>
+          <ToggleSingupLogin isLogin={false} />
         </CardContent>
       </Card>
     </div>
   </AuthLayout>
 }
 
-export default LoginFeature;
+export default SignUpFeature;

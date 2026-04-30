@@ -1,30 +1,69 @@
 import { lazy ,Suspense} from "react";
 import {createBrowserRouter} from "react-router-dom";
 import ROUTES from "./RouterConstant";
+import AuthPageSkelton from "../components/Loaders/AuthPageSkelton.tsx";
 
-const LandingPage = lazy(() => import("../components/LandingPage"));
-const LoginPage = lazy(() => import("../pages/LoginPage/Login"));
-const SingUpPage = lazy(() => import("../pages/SingUpPage/Signup"));
+const LoginPage = lazy(() => import("../pages/LoginPage/Login.tsx"));
+const SingUpPage = lazy(() => import("../pages/SingUpPage/Signup.tsx"));
+const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage/ForgotPassword.tsx"));
+const AdminLayout = lazy(() => import("../layout/AdminLayout.tsx"));
+const DashboardPage = lazy(() => import("../features/AdminDashboard/Pages/DashboardPage"));
+const StudentsPage = lazy(() => import("../features/AdminDashboard/Pages/StudentsPage"));
+const TeachersPage = lazy(() => import("../features/AdminDashboard/Pages/TeachersPage"));
+const AdminsPage = lazy(() => import("../features/AdminDashboard/Pages/AdminsPage"));
 
 const AppRouter = createBrowserRouter([
   {
     path: ROUTES.DEFAULT_ROUTE,
-    element:  <Suspense fallback={<div>Loading...</div>}>
-        <LandingPage onGetStarted={() => {}} />
+    element:  <Suspense fallback={<AuthPageSkelton />}>
+        <LoginPage />
       </Suspense>
   },
   {
     path: ROUTES.LOGIN,
-    element:  <Suspense fallback={<div>Loading...</div>}>
+    element:  <Suspense fallback={<AuthPageSkelton />}>
         <LoginPage />
       </Suspense>
   },
   {
     path: ROUTES.SIGNUP,
-    element:  <Suspense fallback={<div>Loading...</div>}>
+    element:  <Suspense fallback={<AuthPageSkelton />}>
         <SingUpPage />
       </Suspense>
   },
+  {
+    path: ROUTES.FORGOT_PASSWORD,
+    element:  <Suspense fallback={<AuthPageSkelton />}>
+        <ForgotPasswordPage />
+      </Suspense>
+  },
+ {
+  path: ROUTES.ADMIN_DASHBOARD,
+  element: (
+    <Suspense fallback={<AuthPageSkelton />}>
+      <AdminLayout />
+    </Suspense>
+  ),
+  children: [
+    {
+      index: true, // default child route
+      element: <DashboardPage />,
+    },
+    {
+      path: "students", 
+      element: <StudentsPage />,
+    },
+    {
+      path: "teachers",
+      element: <TeachersPage />,
+    },
+    {
+      path: "admins",
+      element: <AdminsPage />,
+    },
+  ],
+}
+
 ]);
 
 export default AppRouter;

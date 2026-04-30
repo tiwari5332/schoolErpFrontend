@@ -1,4 +1,4 @@
-const ToggleSingupLogin = ({ isLogin }: { isLogin: boolean }) => {
+const ToggleSingupLogin = ({ isLogin=true }: { isLogin: boolean }) => {
   return <div className="text-center pt-4 border-t border-slate-200">
     <p className="text-sm text-slate-600">
       {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}

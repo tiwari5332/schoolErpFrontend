@@ -8,10 +8,11 @@ import { Button } from "../../../components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
+import { User } from "lucide-react";
 import { AlertCircle } from "lucide-react";
-const LoginForm = () => {
+
+const SignUpForm = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,7 +71,45 @@ const LoginForm = () => {
     }
   };
 
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      // Success - show confirmation
+      setResetEmailSent(true);
+    }
+  };
+
   return <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-2">
+      <Label htmlFor="name">Full Name</Label>
+      <div className="relative">
+        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          id="name"
+          type="text"
+          placeholder="John Doe"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className={`pl-10 ${errors.name ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+        />
+      </div>
+      {errors.name && (
+        <div className="flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{errors.name}</span>
+        </div>
+      )}
+    </div>
     <div className="space-y-2">
       <Label htmlFor="email">Email Address</Label>
       <div className="relative">
@@ -120,39 +159,62 @@ const LoginForm = () => {
         </div>
       )}
     </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="remember"
-            checked={formData.rememberMe}
-            onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
-          />
-          <Label htmlFor="remember" className="text-sm cursor-pointer">
-            Remember me
-          </Label>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setIsForgotPassword(true);
-            setErrors({});
-          }}
-          className="text-sm text-indigo-600 hover:text-indigo-700"
-        >
-          Forgot password?
-        </button>
+    <div className="space-y-2">
+      <Label htmlFor="confirmPassword">Confirm Password</Label>
+      <div className="relative">
+        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          id="confirmPassword"
+          type={showPassword ? "text" : "password"}
+          placeholder="••••••••"
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+        />
       </div>
+      {errors.confirmPassword && (
+        <div className="flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{errors.confirmPassword}</span>
+        </div>
+      )}
+    </div>
+
+    <div className="space-y-2">
+      <div className="flex items-start items-center gap-2">
+        <Checkbox
+          id="terms"
+          checked={formData.agreeToTerms}
+          onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
+          className={errors.agreeToTerms ? 'border-rose-500' : ''}
+        />
+        <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+          I agree to the{' '}
+          <button type="button" className="text-indigo-600 hover:text-indigo-700">
+            Terms of Service
+          </button>
+          {' '}and{' '}
+          <button type="button" className="text-indigo-600 hover:text-indigo-700">
+            Privacy Policy
+          </button>
+        </Label>
+      </div>
+      {errors.agreeToTerms && (
+        <div className="flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{errors.agreeToTerms}</span>
+        </div>
+      )}
     </div>
     <Button
       type="submit"
       className="w-full gradient-indigo text-white shadow-colored-indigo hover:scale-[1.02] transition-all duration-200"
       size="lg"
     >
-      <span>{'Sign In'}</span>
+      <span>{'Create Account'}</span>
       <ArrowRight className="h-4 w-4 ml-2" />
     </Button>
   </form>
 }
 
-export default LoginForm;
+export default SignUpForm;

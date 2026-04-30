@@ -8,8 +8,9 @@ import { Button } from "../../../components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
-import { AlertCircle } from "lucide-react";
-const LoginForm = () => {
+import { Send } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+const ForgotPasswordForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -70,13 +71,40 @@ const LoginForm = () => {
     }
   };
 
-  return <form onSubmit={handleSubmit} className="space-y-4">
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      // Success - show confirmation
+      setResetEmailSent(true);
+    }
+  };
+
+  return <form onSubmit={handleForgotPassword} className="space-y-4">
+    <div className="text-center mb-6">
+      <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-3">
+        <Lock className="h-6 w-6 text-indigo-600" />
+      </div>
+      <p className="text-sm text-slate-600 leading-relaxed">
+        Enter your email address and we'll send you instructions to reset your password.
+      </p>
+    </div>
+
     <div className="space-y-2">
-      <Label htmlFor="email">Email Address</Label>
+      <Label htmlFor="forgot-email">Email Address</Label>
       <div className="relative">
         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <Input
-          id="email"
+          id="forgot-email"
           type="email"
           placeholder="you@example.com"
           value={formData.email}
@@ -92,67 +120,28 @@ const LoginForm = () => {
       )}
     </div>
 
-    {/* Password Field */}
-    <div className="space-y-2">
-      <Label htmlFor="password">Password</Label>
-      <div className="relative">
-        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input
-          id="password"
-          type={showPassword ? "text" : "password"}
-          placeholder="••••••••"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className={`pl-10 pr-10 ${errors.password ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-        >
-          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-      </div>
-      {errors.password && (
-        <div className="flex items-center gap-1 text-xs text-rose-600">
-          <AlertCircle className="h-3 w-3" />
-          <span>{errors.password}</span>
-        </div>
-      )}
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="remember"
-            checked={formData.rememberMe}
-            onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
-          />
-          <Label htmlFor="remember" className="text-sm cursor-pointer">
-            Remember me
-          </Label>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setIsForgotPassword(true);
-            setErrors({});
-          }}
-          className="text-sm text-indigo-600 hover:text-indigo-700"
-        >
-          Forgot password?
-        </button>
-      </div>
-    </div>
     <Button
       type="submit"
       className="w-full gradient-indigo text-white shadow-colored-indigo hover:scale-[1.02] transition-all duration-200"
       size="lg"
     >
-      <span>{'Sign In'}</span>
-      <ArrowRight className="h-4 w-4 ml-2" />
+      <Send className="h-4 w-4 mr-2" />
+      Send Reset Instructions
+    </Button>
+
+    <Button
+      type="button"
+      onClick={() => {
+        setIsForgotPassword(false);
+        setErrors({});
+      }}
+      variant="outline"
+      className="w-full"
+    >
+      <ArrowLeft className="h-4 w-4 mr-2" />
+      Back to Sign In
     </Button>
   </form>
 }
 
-export default LoginForm;
+export default ForgotPasswordForm;
