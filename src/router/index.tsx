@@ -8,9 +8,14 @@ const SingUpPage = lazy(() => import("../pages/SingUpPage/Signup.tsx"));
 const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage/ForgotPassword.tsx"));
 const AdminLayout = lazy(() => import("../layout/AdminLayout.tsx"));
 const DashboardPage = lazy(() => import("../features/AdminDashboard/Pages/DashboardPage"));
-const StudentsPage = lazy(() => import("../features/AdminDashboard/Pages/StudentsPage"));
-const TeachersPage = lazy(() => import("../features/AdminDashboard/Pages/TeachersPage"));
-const AdminsPage = lazy(() => import("../features/AdminDashboard/Pages/AdminsPage"));
+const StudentsPage = lazy(() => import("../pages/StudentManagementPage/index.tsx"));
+const TeachersPage = lazy(() => import("../features/TeacherManagement/Pages/TeacherList.tsx"));
+const AdminsPage = lazy(() => import("../features/AdminManagement/Pages/AdminList.tsx"));
+
+const FeeManagementPage = lazy(() => import("../pages/FeeManagementPage/index.tsx"));
+const ScheduleManagementPage = lazy(() => import("../pages/ScheduleManagementPage/index.tsx"));
+const CommunicationPage = lazy(() => import("../pages/CommunicationPage/index.tsx"));
+const AcademicSetupPage = lazy(() => import("../pages/AcademicSetupPage/index.tsx"));
 
 const AppRouter = createBrowserRouter([
   {
@@ -56,6 +61,22 @@ const AppRouter = createBrowserRouter([
     {
       path: "teachers",
       element: <TeachersPage />,
+    },
+    {
+      path: "fees",
+      element: <FeeManagementPage />,
+    },
+    {
+      path: "schedule",
+      element: <ScheduleManagementPage />,
+    },
+    {
+      path: "communication",
+      element: <CommunicationPage />,
+    },
+    {
+      path: "academic-setup",
+      element: <AcademicSetupPage />,
     },
     {
       path: "admins",

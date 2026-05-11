@@ -8,12 +8,20 @@ import {
   Home,
   Settings, 
   LogOut,
+  Wallet,
+  Calendar,
+  Megaphone,
+  Network
 } from "lucide-react";
 
 const menuItems = [
   { id: 'overview', label: 'Dashboard', icon: Home, color: 'indigo', path: '/admin-dashboard' },
+  { id: 'academic-setup', label: 'Academic Setup', icon: Network, color: 'fuchsia', path: '/admin-dashboard/academic-setup' },
   { id: 'students', label: 'Students', icon: GraduationCap, color: 'cyan', path: '/admin-dashboard/students' },
   { id: 'teachers', label: 'Teachers', icon: Users, color: 'emerald', path: '/admin-dashboard/teachers' },
+  { id: 'schedule', label: 'Schedule & Timetable', icon: Calendar, color: 'rose', path: '/admin-dashboard/schedule' },
+  { id: 'communication', label: 'Communication Hub', icon: Megaphone, color: 'blue', path: '/admin-dashboard/communication' },
+  { id: 'fees', label: 'Fee Management', icon: Wallet, color: 'amber', path: '/admin-dashboard/fees' },
   { id: 'admins', label: 'Administrators', icon: UserCheck, color: 'purple', path: '/admin-dashboard/admins' },
 ];
 

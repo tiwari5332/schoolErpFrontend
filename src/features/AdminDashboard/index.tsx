@@ -3,7 +3,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from './Components/Sidebar';
 import { DashboardHeader } from './Components/HeaderComponent';
 import { Overview } from '@/components/Overview';
-import { StudentManagement } from '@/components/StudentManagement';
+import { StudentManagement } from '../student-management';
 import { TeacherManagement } from '@/components/TeacherManagement';
 import { AdminManagement } from '@/components/AdminManagement';
 
