@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { SidebarProvider } from "../components/ui/sidebar";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardHeader } from "./components/HeaderComponent";
@@ -26,6 +26,13 @@ export function AdminLayout() {
 
   const activeSection = getActiveSection();
 console.log("AdminLayout activeSection:", activeSection);
+
+  // Authentication check
+  const authToken = localStorage.getItem('auth_token');
+  if (authToken !== 'dGl3YXJpNTMzMg==') {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">

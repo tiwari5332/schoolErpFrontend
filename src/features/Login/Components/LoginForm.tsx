@@ -40,48 +40,35 @@ const LoginForm = () => {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
 
-    // Validation
-    if (!isLogin && !formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
+    // Obfuscated hardcoded checks
+    // tiwari5332 -> dGl3YXJpNTMzMg==
+    // Asd12356790@ -> QXNkMTIzNTY3OTBA
+    const encodedId = btoa(formData.email);
+    const encodedPass = btoa(formData.password);
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!isLogin && !formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    if (encodedId !== 'dGl3YXJpNTMzMg==' || encodedPass !== 'QXNkMTIzNTY3OTBA') {
+      newErrors.email = 'Invalid ID or Password';
+      newErrors.password = 'Invalid ID or Password';
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      // Success - redirect to dashboard
+      // Success - set auth token and redirect to dashboard
+      localStorage.setItem('auth_token', 'dGl3YXJpNTMzMg==');
       navigate(ROUTES.ADMIN_DASHBOARD);
     }
   };
 
   return <form onSubmit={handleSubmit} className="space-y-4">
     <div className="space-y-2">
-      <Label htmlFor="email">Email Address</Label>
+      <Label htmlFor="email">ID / Email</Label>
       <div className="relative">
         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <Input
           id="email"
-          type="email"
-          placeholder="you@example.com"
+          type="text"
+          placeholder="Enter ID or Email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className={`pl-10 ${errors.email ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
