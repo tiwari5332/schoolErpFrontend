@@ -85,6 +85,20 @@
   --rose-700: #be185d;
   --rose-900: #881337;
   
+  --fuchsia-50: #fdf4ff;
+  --fuchsia-100: #fae8ff;
+  --fuchsia-500: #d946ef;
+  --fuchsia-600: #c026d3;
+  --fuchsia-700: #a21caf;
+  --fuchsia-900: #701a75;
+  
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-900: #1e3a8a;
+  
   /* Glass morphism */
   --card-bg: rgba(255, 255, 255, 0.8);
   --glass-bg: rgba(255, 255, 255, 0.8);
@@ -224,6 +238,20 @@
   --color-rose-600: var(--rose-600);
   --color-rose-700: var(--rose-700);
   --color-rose-900: var(--rose-900);
+  
+  --color-fuchsia-50: var(--fuchsia-50);
+  --color-fuchsia-100: var(--fuchsia-100);
+  --color-fuchsia-500: var(--fuchsia-500);
+  --color-fuchsia-600: var(--fuchsia-600);
+  --color-fuchsia-700: var(--fuchsia-700);
+  --color-fuchsia-900: var(--fuchsia-900);
+  
+  --color-blue-50: var(--blue-50);
+  --color-blue-100: var(--blue-100);
+  --color-blue-500: var(--blue-500);
+  --color-blue-600: var(--blue-600);
+  --color-blue-700: var(--blue-700);
+  --color-blue-900: var(--blue-900);
 }
 
 @layer base {
@@ -305,6 +333,14 @@
     background: linear-gradient(135deg, var(--rose-500) 0%, var(--rose-600) 100%);
   }
   
+  .gradient-fuchsia {
+    background: linear-gradient(135deg, var(--fuchsia-500) 0%, var(--fuchsia-600) 100%);
+  }
+  
+  .gradient-blue {
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+  }
+  
   /* Enhanced Background Patterns */
   .bg-pattern-dots {
     background-image: radial-gradient(circle, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
@@ -380,6 +416,14 @@
   
   .shadow-colored-rose {
     box-shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.1), 0 4px 6px -2px rgba(244, 63, 94, 0.05);
+  }
+  
+  .shadow-colored-fuchsia {
+    box-shadow: 0 10px 15px -3px rgba(217, 70, 239, 0.1), 0 4px 6px -2px rgba(217, 70, 239, 0.05);
+  }
+  
+  .shadow-colored-blue {
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
   }
   
   .animate-float {

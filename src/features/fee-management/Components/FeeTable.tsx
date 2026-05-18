@@ -59,14 +59,13 @@ export function FeeTable({
           <Table>
             <TableHeader>
               <TableRow className="border-slate-100">
-                <TableHead className="w-12 text-center">
+                <TableHead className="w-12 text-center pl-6">
                   <Checkbox 
                     checked={allSelected ? true : someSelected ? "indeterminate" : false}
                     onCheckedChange={onToggleSelectAll}
                     className="border-slate-300 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                   />
                 </TableHead>
-                <TableHead className="w-12 font-medium text-slate-600"></TableHead>
                 <TableHead className="font-medium text-slate-600">Student Info</TableHead>
                 <TableHead className="font-medium text-slate-600">Class</TableHead>
                 <TableHead className="font-medium text-slate-600">Total Amount</TableHead>
@@ -75,7 +74,7 @@ export function FeeTable({
                 <TableHead className="font-medium text-slate-600">Balance</TableHead>
                 <TableHead className="font-medium text-slate-600">Due Date</TableHead>
                 <TableHead className="font-medium text-slate-600">Status</TableHead>
-                <TableHead className="font-medium text-slate-600 text-right">Actions</TableHead>
+                <TableHead className="font-medium text-slate-600 text-right pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -86,7 +85,7 @@ export function FeeTable({
 
                 return (
                   <TableRow key={record.id} className={`border-slate-100 transition-colors ${selectedIds.includes(record.id) ? 'bg-amber-50/50' : 'hover:bg-slate-50/50'}`}>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center pl-6">
                       <Checkbox 
                         checked={selectedIds.includes(record.id)}
                         onCheckedChange={() => onToggleSelect(record.id)}
@@ -94,17 +93,17 @@ export function FeeTable({
                       />
                     </TableCell>
                     <TableCell>
-                      <Avatar className="h-10 w-10 ring-2 ring-amber-100">
-                        <AvatarImage src={record.avatar} />
-                        <AvatarFallback className="gradient-amber text-white font-medium">
-                          {record.studentName.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-slate-900">{record.studentName}</div>
-                        <div className="text-sm text-slate-500">{record.studentId}</div>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 ring-1 ring-slate-200">
+                          <AvatarImage src={record.avatar} />
+                          <AvatarFallback className="gradient-amber text-white font-medium text-xs">
+                            {record.studentName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-0.5">
+                          <div className="font-medium text-slate-900">{record.studentName}</div>
+                          <div className="text-xs text-slate-500">{record.studentId}</div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -147,7 +146,7 @@ export function FeeTable({
                         {record.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-6">
                       <div className="flex justify-end gap-1">
                         <Button 
                           variant="ghost" 

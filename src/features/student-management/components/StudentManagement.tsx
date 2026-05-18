@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avat
 import { Card, CardContent } from "../../../components/ui/card";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Label } from "../../../components/ui/label";
-import { Download, UserPlus, AlertTriangle, Trash2 } from "lucide-react";
+import { Download, UserPlus, AlertTriangle, Trash2, Users, Clock, BookOpen, IndianRupee, Settings } from "lucide-react";
 
 import { Student, GRADES, INITIAL_STUDENTS } from '../constant';
 import { StudentForm } from './StudentForm';
@@ -13,11 +13,16 @@ import { StudentDetailView } from './StudentDetailView';
 import { StudentTable } from './StudentTable';
 import { StudentStats } from './StudentStats';
 import { StudentFilters } from './StudentFilters';
+import { StudentAttendanceTable } from './StudentAttendanceTable';
+import { StudentAcademicRecords } from './StudentAcademicRecords';
+import { StudentFeeTracking } from './StudentFeeTracking';
+import { StudentSettingsPanel } from './StudentSettingsPanel';
 
 export function StudentManagement() {
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('all');
+  const [activeTab, setActiveTab] = useState('student-list');
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
@@ -117,19 +122,83 @@ export function StudentManagement() {
 
       <StudentStats students={students} gradesCount={GRADES.length} />
 
-      <StudentFilters 
-        searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
-        selectedGrade={selectedGrade} 
-        onGradeChange={setSelectedGrade} 
-      />
+      {/* Tabs Navigation */}
+      <div className="flex justify-between overflow-x-auto gap-2 pb-2 scrollbar-hide bg-indigo-50/50 p-2 rounded-2xl border border-indigo-100/50 shadow-inner w-full">
+        <Button 
+          variant={activeTab === 'student-list' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('student-list')}
+          className={`gap-2 rounded-xl px-5 transition-all duration-300 ${activeTab === 'student-list' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600'}`}
+        >
+          <Users className="h-4 w-4" />
+          Student List
+        </Button>
+        <Button 
+          variant={activeTab === 'attendance' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('attendance')}
+          className={`gap-2 rounded-xl px-5 transition-all duration-300 ${activeTab === 'attendance' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600'}`}
+        >
+          <Clock className="h-4 w-4" />
+          Attendance
+        </Button>
+        <Button 
+          variant={activeTab === 'academic-records' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('academic-records')}
+          className={`gap-2 rounded-xl px-5 transition-all duration-300 ${activeTab === 'academic-records' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600'}`}
+        >
+          <BookOpen className="h-4 w-4" />
+          Academic Records
+        </Button>
+        <Button 
+          variant={activeTab === 'fee-tracking' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('fee-tracking')}
+          className={`gap-2 rounded-xl px-5 transition-all duration-300 ${activeTab === 'fee-tracking' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600'}`}
+        >
+          <IndianRupee className="h-4 w-4" />
+          Fee Tracking
+        </Button>
+        <Button 
+          variant={activeTab === 'settings' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('settings')}
+          className={`gap-2 rounded-xl px-5 transition-all duration-300 ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600'}`}
+        >
+          <Settings className="h-4 w-4" />
+          Student Settings
+        </Button>
+      </div>
 
-      <StudentTable 
-        students={filteredStudents} 
-        onViewStudent={handleViewStudent} 
-        onEditStudent={handleEditClick} 
-        onDeleteStudent={handleDeleteClick} 
-      />
+      {activeTab === 'student-list' && (
+        <>
+          <StudentFilters 
+            searchTerm={searchTerm} 
+            onSearchChange={setSearchTerm} 
+            selectedGrade={selectedGrade} 
+            onGradeChange={setSelectedGrade} 
+          />
+
+          <StudentTable 
+            students={filteredStudents} 
+            onViewStudent={handleViewStudent} 
+            onEditStudent={handleEditClick} 
+            onDeleteStudent={handleDeleteClick} 
+          />
+        </>
+      )}
+
+      {activeTab === 'attendance' && (
+        <StudentAttendanceTable students={students} />
+      )}
+
+      {activeTab === 'academic-records' && (
+        <StudentAcademicRecords students={students} />
+      )}
+
+      {activeTab === 'fee-tracking' && (
+        <StudentFeeTracking students={students} />
+      )}
+
+      {activeTab === 'settings' && (
+        <StudentSettingsPanel />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

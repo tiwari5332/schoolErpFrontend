@@ -195,10 +195,10 @@ export function CommunicationTabs({ announcements, meetings }: CommunicationTabs
           <Table>
             <TableHeader>
               <TableRow className="border-slate-100 bg-slate-50/50">
-                <TableHead className="font-medium text-slate-600">Title</TableHead>
+                <TableHead className="font-medium text-slate-600 pl-6">Title</TableHead>
                 <TableHead className="font-medium text-slate-600">Target</TableHead>
                 <TableHead className="font-medium text-slate-600">Date</TableHead>
-                <TableHead className="text-right font-medium text-slate-600">Action</TableHead>
+                <TableHead className="text-right font-medium text-slate-600 pr-6">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -208,7 +208,7 @@ export function CommunicationTabs({ announcements, meetings }: CommunicationTabs
                   className="hover:bg-slate-50/80 cursor-pointer transition-colors"
                   onClick={() => setSelectedAnnouncement(ann)}
                 >
-                  <TableCell className="font-medium text-slate-800">
+                  <TableCell className="font-medium text-slate-800 pl-6">
                     <div className="flex flex-col gap-1">
                       <span className="truncate max-w-xs" title={ann.title}>{ann.title}</span>
                       <div className="flex gap-1">
@@ -230,7 +230,7 @@ export function CommunicationTabs({ announcements, meetings }: CommunicationTabs
                       {new Date(ann.sentAt).toLocaleDateString()}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right pr-6">
                     <button 
                       className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
                       onClick={(e) => {

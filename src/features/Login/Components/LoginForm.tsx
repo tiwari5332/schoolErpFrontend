@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ROUTES from "../../../router/RouterConstant";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Mail } from "lucide-react";
@@ -10,6 +12,7 @@ import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 const LoginForm = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -65,8 +68,8 @@ const LoginForm = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      // Success - call onLogin
-      onLogin();
+      // Success - redirect to dashboard
+      navigate(ROUTES.ADMIN_DASHBOARD);
     }
   };
 

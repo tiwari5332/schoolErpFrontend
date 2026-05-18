@@ -7,6 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Search, FileText, Download, PlayCircle, Eye, Building2 } from "lucide-react";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 import { Teacher } from '../Constants';
 
 interface PayslipManagementProps {
@@ -36,6 +44,14 @@ export function PayslipManagement({ teachers }: PayslipManagementProps) {
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     teacher.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredTeachers.length);
+  const paginatedTeachers = filteredTeachers.slice(startIndex, endIndex);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
@@ -129,7 +145,7 @@ export function PayslipManagement({ teachers }: PayslipManagementProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTeachers.map((teacher) => {
+              {paginatedTeachers.map((teacher) => {
                 const payslip = getPayslipForTeacher(teacher.id);
 
                 return (
@@ -204,6 +220,42 @@ export function PayslipManagement({ teachers }: PayslipManagementProps) {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {filteredTeachers.length > 0 && (
+          <div className="py-4 border-t border-slate-100 flex items-center justify-between px-6">
+            <div className="text-sm text-slate-500">
+              Showing {startIndex + 1} to {endIndex} of {filteredTeachers.length} entries
+            </div>
+            <Pagination className="w-auto mx-0">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <PaginationItem key={idx}>
+                    <PaginationLink 
+                      onClick={() => setCurrentPage(idx + 1)}
+                      isActive={currentPage === idx + 1}
+                      className="cursor-pointer"
+                    >
+                      {idx + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
 
       {/* Payslip View Modal */}

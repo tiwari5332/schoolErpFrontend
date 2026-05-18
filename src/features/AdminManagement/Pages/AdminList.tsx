@@ -305,31 +305,30 @@ export function AdminList() {
             <Table>
               <TableHeader>
                 <TableRow className="border-slate-100">
-                  <TableHead className="w-12 font-medium text-slate-600"></TableHead>
-                  <TableHead className="font-medium text-slate-600">Admin Info</TableHead>
+                  <TableHead className="font-medium text-slate-600 pl-6">Admin Info</TableHead>
                   <TableHead className="font-medium text-slate-600">Role</TableHead>
                   <TableHead className="font-medium text-slate-600">Department</TableHead>
                   <TableHead className="font-medium text-slate-600">Permissions</TableHead>
                   <TableHead className="font-medium text-slate-600">Status</TableHead>
-                  <TableHead className="font-medium text-slate-600 text-right">Actions</TableHead>
+                  <TableHead className="font-medium text-slate-600 text-right pr-6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAdmins.map((admin) => (
                   <TableRow key={admin.id} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <TableCell>
-                      <Avatar className="h-10 w-10 ring-2 ring-purple-100">
-                        <AvatarImage src={admin.avatar} />
-                        <AvatarFallback className="gradient-purple text-white font-medium">
-                          {admin.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-slate-900">{admin.name}</div>
-                        <div className="text-sm text-slate-500">{admin.id}</div>
-                        <div className="text-sm text-slate-500">{admin.email}</div>
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 ring-1 ring-slate-200">
+                          <AvatarImage src={admin.avatar} />
+                          <AvatarFallback className="gradient-purple text-white font-medium text-xs">
+                            {admin.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-0.5">
+                          <div className="font-medium text-slate-900">{admin.name}</div>
+                          <div className="text-xs text-slate-500">{admin.id}</div>
+                          <div className="text-xs text-slate-500">{admin.email}</div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -349,7 +348,7 @@ export function AdminList() {
                         {admin.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-6">
                       <div className="flex justify-end gap-1">
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-50 hover:scale-110 transition-all duration-200">
                           <Eye className="h-4 w-4 text-purple-600" />
