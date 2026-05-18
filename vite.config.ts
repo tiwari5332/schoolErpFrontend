@@ -21,10 +21,10 @@ export default defineConfig({
       output: {
         manualChunks: {
           'ui-components': [
-            './src/ui/button',
-            './src/ui/card',
-            './src/ui/input',
-            './src/ui/label',
+            './src/components/ui/button.tsx',
+            './src/components/ui/card.tsx',
+            './src/components/ui/input.tsx',
+            './src/components/ui/label.tsx',
           ],
         },
       },
