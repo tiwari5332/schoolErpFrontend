@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,72 +13,36 @@ import { TeacherAttendanceTable } from '../Components/TeacherAttendanceTable';
 import { SalaryStructureTable } from '../Components/SalaryStructureTable';
 import { PayslipManagement } from '../Components/PayslipManagement';
 import { EmployeeSettingsPanel } from '../Components/EmployeeSettingsPanel';
-import { Teacher, INITIAL_TEACHERS, DEPARTMENTS } from '../Constants';
+import { Teacher, DEPARTMENTS } from '../Constants';
+import { useTeacherList } from '../hooks/useTeacherList';
 
 export function TeacherList() {
-  const [teachers, setTeachers] = useState<Teacher[]>(INITIAL_TEACHERS);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [activeTab, setActiveTab] = useState('employee-list');
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-  const [editCandidate, setEditCandidate] = useState<Teacher | null>(null);
-  const [deleteCandidate, setDeleteCandidate] = useState<Teacher | null>(null);
-
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || teacher.department === selectedDepartment;
-    return matchesSearch && matchesDepartment;
-  });
-
-  const handleViewTeacher = (teacher: Teacher) => {
-    setSelectedTeacher(teacher);
-    setIsDetailViewOpen(true);
-  };
-
-  const handleCloseDetailView = () => {
-    setIsDetailViewOpen(false);
-    setSelectedTeacher(null);
-  };
-
-  const handleAddClick = () => {
-    setEditCandidate(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (teacher: Teacher) => {
-    setEditCandidate({ ...teacher });
-    setIsFormOpen(true);
-  };
-
-  const handleFormSave = (teacherData: Teacher) => {
-    if (editCandidate) {
-      setTeachers(teachers.map(t => t.id === teacherData.id ? teacherData : t));
-    } else {
-      setTeachers([...teachers, teacherData]);
-    }
-    setIsFormOpen(false);
-    setEditCandidate(null);
-  };
-
-  const handleDeleteClick = (teacher: Teacher) => {
-    setDeleteCandidate(teacher);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteCandidate) {
-      setTeachers(teachers.filter(t => t.id !== deleteCandidate.id));
-      setIsDeleteDialogOpen(false);
-      setDeleteCandidate(null);
-    }
-  };
+  const {
+    teachers,
+    filteredTeachers,
+    isLoading,
+    searchTerm,
+    setSearchTerm,
+    selectedDepartment,
+    setSelectedDepartment,
+    activeTab,
+    setActiveTab,
+    isFormOpen,
+    setIsFormOpen,
+    isDetailViewOpen,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    selectedTeacher,
+    editCandidate,
+    deleteCandidate,
+    handleViewTeacher,
+    handleCloseDetailView,
+    handleAddClick,
+    handleEditClick,
+    handleFormSave,
+    handleDeleteClick,
+    handleDeleteConfirm,
+  } = useTeacherList();
 
   if (isDetailViewOpen && selectedTeacher) {
     return (
@@ -182,58 +146,64 @@ export function TeacherList() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'employee-list' && (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      ) : (
         <>
-          <TeacherFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            selectedDepartment={selectedDepartment}
-            onDepartmentChange={setSelectedDepartment}
-          />
+          {activeTab === 'employee-list' && (
+            <>
+              <TeacherFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedDepartment={selectedDepartment}
+                onDepartmentChange={setSelectedDepartment}
+              />
 
-          <TeacherTable
-            teachers={filteredTeachers}
-            onViewTeacher={handleViewTeacher}
-            onEditTeacher={handleEditClick}
-            onDeleteTeacher={handleDeleteClick}
-          />
+              <TeacherTable
+                teachers={filteredTeachers}
+                onViewTeacher={handleViewTeacher}
+                onEditTeacher={handleEditClick}
+                onDeleteTeacher={handleDeleteClick}
+              />
+            </>
+          )}
+
+          {activeTab === 'employee-attendance' && (
+            <TeacherAttendanceTable teachers={teachers} />
+          )}
+
+          {activeTab === 'salary-structure' && (
+            <SalaryStructureTable teachers={teachers} />
+          )}
+
+          {activeTab === 'payslip' && (
+            <PayslipManagement teachers={teachers} />
+          )}
+
+          {activeTab === 'emp-settings' && (
+            <EmployeeSettingsPanel />
+          )}
+
+          {['calendar'].includes(activeTab) && (
+            <Card className="border-0 shadow-xl glass-card h-[400px] flex items-center justify-center">
+              <CardContent className="flex flex-col items-center space-y-4 text-center">
+                <div className="h-20 w-20 bg-indigo-50 rounded-full flex items-center justify-center animate-pulse-slow">
+                  <Calendar className="h-10 w-10 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Module Under Construction</h3>
+                  <p className="text-slate-500 mt-2 max-w-md">The <span className="capitalize font-medium text-slate-700">{activeTab.replace('-', ' ')}</span> module is currently being built and will be available in a future update.</p>
+                </div>
+                <Button variant="outline" onClick={() => setActiveTab('employee-list')} className="mt-4 border-2 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all">
+                  Return to Employee List
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
-
-      {activeTab === 'employee-attendance' && (
-        <TeacherAttendanceTable teachers={teachers} />
-      )}
-
-      {activeTab === 'salary-structure' && (
-        <SalaryStructureTable teachers={teachers} />
-      )}
-
-      {activeTab === 'payslip' && (
-        <PayslipManagement teachers={teachers} />
-      )}
-
-      {activeTab === 'emp-settings' && (
-        <EmployeeSettingsPanel />
-      )}
-
-      {['calendar'].includes(activeTab) && (
-        <Card className="border-0 shadow-xl glass-card h-[400px] flex items-center justify-center">
-          <CardContent className="flex flex-col items-center space-y-4 text-center">
-            <div className="h-20 w-20 bg-indigo-50 rounded-full flex items-center justify-center animate-pulse-slow">
-              <Calendar className="h-10 w-10 text-indigo-400" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Module Under Construction</h3>
-              <p className="text-slate-500 mt-2 max-w-md">The <span className="capitalize font-medium text-slate-700">{activeTab.replace('-', ' ')}</span> module is currently being built and will be available in a future update.</p>
-            </div>
-            <Button variant="outline" onClick={() => setActiveTab('employee-list')} className="mt-4 border-2 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-              Return to Employee List
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

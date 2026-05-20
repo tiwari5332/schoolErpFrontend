@@ -1,55 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Megaphone, CalendarPlus, Radio, BellRing, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { Announcement, Meeting, MOCK_ANNOUNCEMENTS, MOCK_MEETINGS } from '../../features/communication/Constants';
+import { Announcement, Meeting } from '../../features/communication/Constants';
+import { useCommunication } from '../../features/communication/hooks/useCommunication';
 import { ComposeBroadcastModal } from '../../features/communication/Components/ComposeBroadcastModal';
 import { ScheduleMeetingModal } from '../../features/communication/Components/ScheduleMeetingModal';
 import { CommunicationTabs } from '../../features/communication/Components/CommunicationTabs';
 
 export default function CommunicationPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(MOCK_ANNOUNCEMENTS);
-  const [meetings, setMeetings] = useState<Meeting[]>(MOCK_MEETINGS);
-  
-  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
-  const [isMeetingOpen, setIsMeetingOpen] = useState(false);
-
-  const handleSendBroadcast = (newAnn: Partial<Announcement>) => {
-    const announcement: Announcement = {
-      id: `ANN${Math.floor(Math.random() * 1000)}`,
-      title: newAnn.title!,
-      message: newAnn.message!,
-      targetAudience: newAnn.targetAudience!,
-      targetClass: newAnn.targetClass,
-      channels: newAnn.channels!,
-      sentAt: newAnn.sentAt!,
-      sentBy: newAnn.sentBy!
-    };
-    
-    // Add to top of list
-    setAnnouncements([announcement, ...announcements]);
-    setIsBroadcastOpen(false);
-  };
-
-  const handleScheduleMeeting = (newMtg: Partial<Meeting>) => {
-    const meeting: Meeting = {
-      id: `MTG${Math.floor(Math.random() * 1000)}`,
-      title: newMtg.title!,
-      date: newMtg.date!,
-      startTime: newMtg.startTime!,
-      endTime: newMtg.endTime!,
-      type: newMtg.type! as any,
-      participants: newMtg.participants!,
-      link: newMtg.link,
-      location: newMtg.location,
-      organizer: newMtg.organizer!
-    };
-    
-    // In a real app, you'd sort these by date. For mock, just push to top.
-    setMeetings([meeting, ...meetings]);
-    setIsMeetingOpen(false);
-  };
+  const {
+    announcements,
+    meetings,
+    isLoading,
+    isBroadcastOpen,
+    setIsBroadcastOpen,
+    isMeetingOpen,
+    setIsMeetingOpen,
+    handleSendBroadcast,
+    handleScheduleMeeting
+  } = useCommunication();
 
   return (
     <div className="space-y-6">
@@ -123,10 +94,16 @@ export default function CommunicationPage() {
       </div>
 
       {/* Main Content Area */}
-      <CommunicationTabs 
-        announcements={announcements} 
-        meetings={meetings} 
-      />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <CommunicationTabs 
+          announcements={announcements} 
+          meetings={meetings} 
+        />
+      )}
 
       {/* Modals */}
       <ComposeBroadcastModal 

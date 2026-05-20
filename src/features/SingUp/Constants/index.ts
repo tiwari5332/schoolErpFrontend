@@ -1,0 +1,17 @@
+export const SIGNUP_TEXT = {
+  HEADING: "Create an Account",
+  SUB_HEADING: "Join EduTrio and start your learning journey today!",
+  FULL_NAME_LABEL: "Full Name",
+  FULL_NAME_PLACEHOLDER: "John Doe",
+  EMAIL_LABEL: "Email Address",
+  EMAIL_PLACEHOLDER: "you@example.com",
+  PASSWORD_LABEL: "Password",
+  PASSWORD_PLACEHOLDER: "••••••••",
+  CONFIRM_PASSWORD_LABEL: "Confirm Password",
+  CONFIRM_PASSWORD_PLACEHOLDER: "••••••••",
+  TERMS_AGREE: "I agree to the",
+  TERMS_LINK: "Terms of Service",
+  AND: "and",
+  PRIVACY_LINK: "Privacy Policy",
+  CREATE_ACCOUNT_BTN: "Create Account",
+};

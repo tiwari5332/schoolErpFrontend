@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Mail } from "lucide-react";
@@ -10,103 +10,52 @@ import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
 import { Send } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { useForgotPassword } from "../Hooks/useForgotPassword";
+import { FORGOT_PWD_TEXT } from "../Constants";
+
 const ForgotPasswordForm = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    rememberMe: false,
-    agreeToTerms: false
-  });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const {
+    formData,
+    setFormData,
+    errors,
+    resetEmailSent,
+    isLoading,
+    handleSubmit
+  } = useForgotPassword();
 
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
+  if (resetEmailSent) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+          <Send className="h-6 w-6 text-emerald-600" />
+        </div>
+        <h3 className="text-lg font-medium text-slate-900">{FORGOT_PWD_TEXT.EMAIL_SENT_HEADING}</h3>
+        <p className="text-sm text-slate-600">
+          {FORGOT_PWD_TEXT.EMAIL_SENT_MSG}
+        </p>
+      </div>
+    );
+  }
 
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors: { [key: string]: string } = {};
-
-    // Validation
-    if (!isLogin && !formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!isLogin && !formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      // Success - call onLogin
-      onLogin();
-    }
-  };
-
-  const handleForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors: { [key: string]: string } = {};
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      // Success - show confirmation
-      setResetEmailSent(true);
-    }
-  };
-
-  return <form onSubmit={handleForgotPassword} className="space-y-4">
+  return <form onSubmit={handleSubmit} className="space-y-4">
     <div className="text-center mb-6">
       <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-3">
         <Lock className="h-6 w-6 text-indigo-600" />
       </div>
       <p className="text-sm text-slate-600 leading-relaxed">
-        Enter your email address and we'll send you instructions to reset your password.
+        {FORGOT_PWD_TEXT.INFO_TEXT}
       </p>
     </div>
 
     <div className="space-y-2">
-      <Label htmlFor="forgot-email">Email Address</Label>
+      <Label htmlFor="forgot-email">{FORGOT_PWD_TEXT.EMAIL_LABEL}</Label>
       <div className="relative">
         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <Input
           id="forgot-email"
           type="email"
-          placeholder="you@example.com"
+          placeholder={FORGOT_PWD_TEXT.EMAIL_PLACEHOLDER}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className={`pl-10 ${errors.email ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
@@ -122,24 +71,28 @@ const ForgotPasswordForm = () => {
 
     <Button
       type="submit"
+      disabled={isLoading}
       className="w-full gradient-indigo text-white shadow-colored-indigo hover:scale-[1.02] transition-all duration-200"
       size="lg"
     >
-      <Send className="h-4 w-4 mr-2" />
-      Send Reset Instructions
+      {isLoading ? (
+        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+      ) : (
+        <Send className="h-4 w-4 mr-2" />
+      )}
+      {FORGOT_PWD_TEXT.SEND_BTN}
     </Button>
 
     <Button
       type="button"
       onClick={() => {
-        setIsForgotPassword(false);
-        setErrors({});
+        window.location.href = '/login';
       }}
       variant="outline"
       className="w-full"
     >
       <ArrowLeft className="h-4 w-4 mr-2" />
-      Back to Sign In
+      {FORGOT_PWD_TEXT.BACK_BTN}
     </Button>
   </form>
 }

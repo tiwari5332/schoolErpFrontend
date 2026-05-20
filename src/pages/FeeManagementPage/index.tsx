@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Download, Plus } from "lucide-react";
-import { FeeRecord, INITIAL_FEE_RECORDS } from '../../features/fee-management/Constants';
+import { FeeRecord } from '../../features/fee-management/Constants';
+import { useFeeManagement } from '../../features/fee-management/hooks/useFeeManagement';
 import { FeeStats } from '../../features/fee-management/Components/FeeStats';
 import { FeeFilters } from '../../features/fee-management/Components/FeeFilters';
 import { FeeTable } from '../../features/fee-management/Components/FeeTable';
@@ -9,68 +10,32 @@ import { FeePaymentForm } from '../../features/fee-management/Components/FeePaym
 import { FeeReceiptModal } from '../../features/fee-management/Components/FeeReceiptModal';
 
 export default function FeeManagementPage() {
-  const [records, setRecords] = useState<FeeRecord[]>(INITIAL_FEE_RECORDS);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedClass, setSelectedClass] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState('all');
-  
-  const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<FeeRecord | undefined>(undefined);
-  
-  // Bulk selection state
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const filteredRecords = records.filter(record => {
-    const matchesSearch = record.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.studentId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
-    const matchesClass = selectedClass === 'all' || record.className === `${selectedClass}`;
-    const matchesMonth = selectedMonth === 'all' || new Date(record.dueDate).getMonth() + 1 === parseInt(selectedMonth);
-    
-    return matchesSearch && matchesStatus && matchesClass && matchesMonth;
-  });
-
-  const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
-    );
-  };
-
-  const handleToggleSelectAll = () => {
-    if (selectedIds.length === filteredRecords.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filteredRecords.map(r => r.id));
-    }
-  };
-
-  const handleBulkRemind = () => {
-    alert(`Successfully sent reminders to ${selectedIds.length} student(s) via Email and SMS.`);
-    setSelectedIds([]); // Clear selection after action
-  };
-
-  const handleRecordPayment = (record: FeeRecord) => {
-    setSelectedRecord(record);
-    setIsPaymentFormOpen(true);
-  };
-
-  const handleViewReceipt = (record: FeeRecord) => {
-    setSelectedRecord(record);
-    setIsReceiptModalOpen(true);
-  };
-
-  const handleSendReminder = (record: FeeRecord) => {
-    // In a real app, this would dispatch an API call
-    alert(`Reminder sent successfully to ${record.studentName}'s parents via Email and SMS.`);
-  };
-
-  const handleSavePayment = (updatedRecord: FeeRecord) => {
-    setRecords(records.map(r => r.id === updatedRecord.id ? updatedRecord : r));
-    setIsPaymentFormOpen(false);
-    setSelectedRecord(undefined);
-  };
+  const {
+    records,
+    filteredRecords,
+    isLoading,
+    searchTerm,
+    setSearchTerm,
+    selectedStatus,
+    setSelectedStatus,
+    selectedClass,
+    setSelectedClass,
+    selectedMonth,
+    setSelectedMonth,
+    isPaymentFormOpen,
+    setIsPaymentFormOpen,
+    isReceiptModalOpen,
+    setIsReceiptModalOpen,
+    selectedRecord,
+    selectedIds,
+    handleToggleSelect,
+    handleToggleSelectAll,
+    handleBulkRemind,
+    handleRecordPayment,
+    handleViewReceipt,
+    handleSendReminder,
+    handleSavePayment
+  } = useFeeManagement();
 
   return (
     <div className="space-y-6">
@@ -109,16 +74,22 @@ export default function FeeManagementPage() {
         />
       </div>
 
-      <FeeTable 
-        records={filteredRecords} 
-        onRecordPayment={handleRecordPayment} 
-        onViewReceipt={handleViewReceipt} 
-        onSendReminder={handleSendReminder}
-        selectedIds={selectedIds}
-        onToggleSelect={handleToggleSelect}
-        onToggleSelectAll={handleToggleSelectAll}
-        onBulkRemind={handleBulkRemind}
-      />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+        </div>
+      ) : (
+        <FeeTable 
+          records={filteredRecords} 
+          onRecordPayment={handleRecordPayment} 
+          onViewReceipt={handleViewReceipt} 
+          onSendReminder={handleSendReminder}
+          selectedIds={selectedIds}
+          onToggleSelect={handleToggleSelect}
+          onToggleSelectAll={handleToggleSelectAll}
+          onBulkRemind={handleBulkRemind}
+        />
+      )}
 
       <FeePaymentForm 
         record={selectedRecord} 

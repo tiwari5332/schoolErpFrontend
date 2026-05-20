@@ -1,5 +1,5 @@
 // src/services/ApiService.js
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 // Create an axios instance with defaults
 const api = axios.create({
@@ -36,11 +36,23 @@ api.interceptors.response.use(
 
 // Generic API methods
 const ApiService = {
-  get: (url, params = {}, config = {}) => api.get(url, { params, ...config }),
-  post: (url, data, config = {}) => api.post(url, data, config),
-  put: (url, data, config = {}) => api.put(url, data, config),
-  patch: (url, data, config = {}) => api.patch(url, data, config),
-  delete: (url, config = {}) => api.delete(url, config),
+  get: async <T>(url: string, params = {}, config: AxiosRequestConfig = {}): Promise<T> => {
+    return api.get(url, { params, ...config });
+  },
+  post: async <T>(url: string, data?: any, config: AxiosRequestConfig = {}): Promise<T> => {
+    return api.post(url, data, config);
+  },
+  put: async <T>(url: string, data?: any, config: AxiosRequestConfig = {}): Promise<T> => {
+    return api.put(url, data, config);
+  },
+  patch: async <T>(url: string, data?: any, config: AxiosRequestConfig = {}): Promise<T> => {
+    return api.patch(url, data, config);
+  },
+  delete: async <T>(url: string, config: AxiosRequestConfig = {}): Promise<T> => {
+    return api.delete(url, config);
+  },
 };
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default ApiService;

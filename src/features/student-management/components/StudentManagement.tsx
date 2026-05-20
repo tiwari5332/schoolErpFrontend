@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "../../../components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../../../components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
@@ -7,7 +7,8 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Label } from "../../../components/ui/label";
 import { Download, UserPlus, AlertTriangle, Trash2, Users, Clock, BookOpen, IndianRupee, Settings } from "lucide-react";
 
-import { Student, GRADES, INITIAL_STUDENTS } from '../constant';
+import { Student, GRADES } from '../constant';
+import { useStudentManagement } from '../hooks/useStudentManagement';
 import { StudentForm } from './StudentForm';
 import { StudentDetailView } from './StudentDetailView';
 import { StudentTable } from './StudentTable';
@@ -19,71 +20,34 @@ import { StudentFeeTracking } from './StudentFeeTracking';
 import { StudentSettingsPanel } from './StudentSettingsPanel';
 
 export function StudentManagement() {
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGrade, setSelectedGrade] = useState('all');
-  const [activeTab, setActiveTab] = useState('student-list');
-  
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [editCandidate, setEditCandidate] = useState<Student | null>(null);
-  const [deleteCandidate, setDeleteCandidate] = useState<Student | null>(null);
-  const [isDeletePermanently, setIsDeletePermanently] = useState(false);
-
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGrade = selectedGrade === 'all' || student.grade === selectedGrade;
-    return matchesSearch && matchesGrade;
-  });
-
-  const handleViewStudent = (student: Student) => {
-    setSelectedStudent(student);
-    setIsDetailViewOpen(true);
-  };
-
-  const handleCloseDetailView = () => {
-    setIsDetailViewOpen(false);
-    setSelectedStudent(null);
-  };
-
-  const handleAddClick = () => {
-    setEditCandidate(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (student: Student) => {
-    setEditCandidate({ ...student });
-    setIsFormOpen(true);
-  };
-
-  const handleFormSave = (studentData: Student) => {
-    if (editCandidate) {
-      setStudents(students.map(s => s.id === studentData.id ? studentData : s));
-    } else {
-      setStudents([...students, studentData]);
-    }
-    setIsFormOpen(false);
-    setEditCandidate(null);
-  };
-
-  const handleDeleteClick = (student: Student) => {
-    setDeleteCandidate(student);
-    setIsDeletePermanently(false);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteCandidate) {
-      setStudents(students.filter(s => s.id !== deleteCandidate.id));
-      setIsDeleteDialogOpen(false);
-      setDeleteCandidate(null);
-    }
-  };
+  const {
+    students,
+    filteredStudents,
+    isLoading,
+    searchTerm,
+    setSearchTerm,
+    selectedGrade,
+    setSelectedGrade,
+    activeTab,
+    setActiveTab,
+    isFormOpen,
+    setIsFormOpen,
+    isDetailViewOpen,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    selectedStudent,
+    editCandidate,
+    deleteCandidate,
+    isDeletePermanently,
+    setIsDeletePermanently,
+    handleViewStudent,
+    handleCloseDetailView,
+    handleAddClick,
+    handleEditClick,
+    handleFormSave,
+    handleDeleteClick,
+    handleDeleteConfirm,
+  } = useStudentManagement();
 
   if (isFormOpen) {
     return <StudentForm student={editCandidate || undefined} onClose={() => setIsFormOpen(false)} onSave={handleFormSave} />;
@@ -166,38 +130,46 @@ export function StudentManagement() {
         </Button>
       </div>
 
-      {activeTab === 'student-list' && (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
         <>
-          <StudentFilters 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm} 
-            selectedGrade={selectedGrade} 
-            onGradeChange={setSelectedGrade} 
-          />
+          {activeTab === 'student-list' && (
+            <>
+              <StudentFilters 
+                searchTerm={searchTerm} 
+                onSearchChange={setSearchTerm} 
+                selectedGrade={selectedGrade} 
+                onGradeChange={setSelectedGrade} 
+              />
 
-          <StudentTable 
-            students={filteredStudents} 
-            onViewStudent={handleViewStudent} 
-            onEditStudent={handleEditClick} 
-            onDeleteStudent={handleDeleteClick} 
-          />
+              <StudentTable 
+                students={filteredStudents} 
+                onViewStudent={handleViewStudent} 
+                onEditStudent={handleEditClick} 
+                onDeleteStudent={handleDeleteClick} 
+              />
+            </>
+          )}
+
+          {activeTab === 'attendance' && (
+            <StudentAttendanceTable students={students} />
+          )}
+
+          {activeTab === 'academic-records' && (
+            <StudentAcademicRecords students={students} />
+          )}
+
+          {activeTab === 'fee-tracking' && (
+            <StudentFeeTracking students={students} />
+          )}
+
+          {activeTab === 'settings' && (
+            <StudentSettingsPanel />
+          )}
         </>
-      )}
-
-      {activeTab === 'attendance' && (
-        <StudentAttendanceTable students={students} />
-      )}
-
-      {activeTab === 'academic-records' && (
-        <StudentAcademicRecords students={students} />
-      )}
-
-      {activeTab === 'fee-tracking' && (
-        <StudentFeeTracking students={students} />
-      )}
-
-      {activeTab === 'settings' && (
-        <StudentSettingsPanel />
       )}
 
       {/* Delete Confirmation Dialog */}
