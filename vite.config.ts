@@ -19,14 +19,15 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'ui-components': [
-            './src/components/ui/button.tsx',
-            './src/components/ui/card.tsx',
-            './src/components/ui/input.tsx',
-            './src/components/ui/label.tsx',
-          ],
-        },
+       manualChunks: {
+  'ui-components': [
+    '@/components/ui/button.tsx',
+    '@/components/ui/card.tsx',
+    '@/components/ui/input.tsx',
+    '@/components/ui/label.tsx',
+  ],
+},
+
       },
     },
   },
