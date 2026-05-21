@@ -14,7 +14,7 @@ import { SalaryStructureTable } from '../Components/SalaryStructureTable';
 import { PayslipManagement } from '../Components/PayslipManagement';
 import { EmployeeSettingsPanel } from '../Components/EmployeeSettingsPanel';
 import { Teacher, DEPARTMENTS } from '../Constants';
-import { useTeacherList } from '../hooks/useTeacherList.ts';
+import { useTeacherList } from '../Hooks/useTeacherList';
 
 export function TeacherList() {
   const {
