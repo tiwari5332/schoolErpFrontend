@@ -18,7 +18,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Overview } from "./Overview";
-import { StudentManagement } from "./StudentManagement";
+import { StudentManagement } from "../features/student-management";
 import { TeacherManagement } from "./TeacherManagement";
 import { AdminManagement } from "./AdminManagement";
 import { EduTrioLogoSimple } from "./EduTrioLogo";

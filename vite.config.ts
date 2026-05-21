@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+   resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   server: {
     port: 5173,
     open: true,
@@ -13,14 +19,15 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'ui-components': [
-            './src/ui/button',
-            './src/ui/card',
-            './src/ui/input',
-            './src/ui/label',
-          ],
-        },
+       manualChunks: {
+  'ui-components': [
+    '@/components/ui/button.tsx',
+    '@/components/ui/card.tsx',
+    '@/components/ui/input.tsx',
+    '@/components/ui/label.tsx',
+  ],
+},
+
       },
     },
   },
