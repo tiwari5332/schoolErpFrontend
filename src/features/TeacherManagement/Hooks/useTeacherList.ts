@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Teacher } from '../Constants';
-import { TeacherApi } from '../api/TeacherApi';
+import { TeacherApi } from '../Api/TeacherApi';
 
 export function useTeacherList() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
