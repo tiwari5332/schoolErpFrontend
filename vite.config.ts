@@ -17,6 +17,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
        manualChunks: {
