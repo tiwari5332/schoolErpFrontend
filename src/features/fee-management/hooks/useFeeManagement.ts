@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FeeRecord } from '../Constants';
 import { FeeApi } from '../api/FeeApi';
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
 
 export function useFeeManagement() {
   const [records, setRecords] = useState<FeeRecord[]>([]);
@@ -78,9 +79,18 @@ export function useFeeManagement() {
   };
 
   const handleSavePayment = async (updatedRecord: FeeRecord) => {
-    // Note: Assuming FeePaymentForm calls processPayment internally or we do it here.
-    // For simplicity, we just update the local state since the form probably doesn't have access to the API method
-    setRecords(records.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+    const updated = records.map(r => r.id === updatedRecord.id ? updatedRecord : r);
+    setRecords(updated);
+    LocalStorageSync.set("edu_trio_fees", updated);
+
+    // Sync student status in edu_trio_students
+    const students = LocalStorageSync.get<any[]>("edu_trio_students") || [];
+    const studentIndex = students.findIndex(s => s.id === updatedRecord.studentId);
+    if (studentIndex !== -1) {
+      students[studentIndex].feeStatus = updatedRecord.status;
+      LocalStorageSync.set("edu_trio_students", students);
+    }
+
     setIsPaymentFormOpen(false);
     setSelectedRecord(undefined);
   };

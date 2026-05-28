@@ -12,21 +12,25 @@ import {
   StudentIncident
 } from '../constant';
 
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
+
 const USE_MOCK = true;
 
 export const StudentApi = {
   getStudents: async (): Promise<Student[]> => {
     if (USE_MOCK) {
-      await delay(500);
-      return [...INITIAL_STUDENTS];
+      await delay(200);
+      const students = LocalStorageSync.get<Student[]>("edu_trio_students");
+      return students || [];
     }
     return await ApiService.get<Student[]>('/students');
   },
 
   getStudentById: async (id: string): Promise<Student | undefined> => {
     if (USE_MOCK) {
-      await delay(300);
-      return INITIAL_STUDENTS.find(s => s.id === id);
+      await delay(100);
+      const students = LocalStorageSync.get<Student[]>("edu_trio_students");
+      return students?.find(s => s.id === id);
     }
     return await ApiService.get<Student>(`/students/${id}`);
   },

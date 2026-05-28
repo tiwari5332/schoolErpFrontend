@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Teacher } from '../Constants';
 import { TeacherApi } from '../Api/TeacherApi';
 
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
+
 export function useTeacherList() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +33,23 @@ export function useTeacherList() {
     };
     
     fetchTeachers();
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("action") === "add") {
+        setIsFormOpen(true);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
   }, []);
+
+  // Save to Local Storage when teachers list changes
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_teachers", teachers);
+    }
+  }, [teachers, isLoading]);
 
   const filteredTeachers = teachers.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

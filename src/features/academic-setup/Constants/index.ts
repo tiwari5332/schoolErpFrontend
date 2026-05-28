@@ -1,15 +1,11 @@
-// Re-using simplified interfaces for mapping purposes. 
-// In a real app, these would come from the main student/teacher services.
+import { Teacher } from '../../TeacherManagement/Constants';
+import { Student } from '../../student-management/constant';
 
-export interface SetupTeacher {
-  id: string;
-  name: string;
+export interface SetupTeacher extends Teacher {
   subjectSpecialty: string;
 }
 
-export interface SetupStudent {
-  id: string;
-  name: string;
+export interface SetupStudent extends Student {
   enrollmentId: string;
   isMapped: boolean;
 }

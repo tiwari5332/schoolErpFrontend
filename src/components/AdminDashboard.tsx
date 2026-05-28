@@ -18,6 +18,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Overview } from "./Overview";
+import { LogoutConfirmDialog } from "./LogoutConfirmDialog";
 import { StudentManagement } from "../features/student-management";
 import { TeacherManagement } from "./TeacherManagement";
 import { AdminManagement } from "./AdminManagement";
@@ -25,6 +26,12 @@ import { EduTrioLogoSimple } from "./EduTrioLogo";
 
 export function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('overview');
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/login';
+  };
 
   const menuItems = [
     { id: 'overview', label: 'Dashboard', icon: Home, color: 'indigo' },
@@ -54,6 +61,7 @@ export function AdminDashboard() {
   };
 
   return (
+    <>
     <SidebarProvider>
       <div className="flex h-screen w-full">
         <Sidebar className="border-r-0 shadow-xl">
@@ -103,7 +111,10 @@ export function AdminDashboard() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group">
+                <SidebarMenuButton 
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group"
+                >
                   <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
                   <span className="ml-3 font-medium">Logout</span>
                 </SidebarMenuButton>
@@ -162,5 +173,12 @@ export function AdminDashboard() {
         </div>
       </div>
     </SidebarProvider>
+
+    <LogoutConfirmDialog
+      open={showLogoutDialog}
+      onOpenChange={setShowLogoutDialog}
+      onConfirm={handleLogout}
+    />
+    </>
   );
 }

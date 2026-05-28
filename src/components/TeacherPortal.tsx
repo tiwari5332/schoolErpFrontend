@@ -21,12 +21,19 @@ import { TeacherOverview } from "./TeacherOverview";
 import { ClassAttendance } from "./ClassAttendance";
 import { TeacherAttendanceApp } from "./TeacherAttendanceApp";
 import { TestManagement } from "./TestManagement";
+import { LogoutConfirmDialog } from "./LogoutConfirmDialog";
 
 interface TeacherPortalProps {}
 
 export function TeacherPortal({}: TeacherPortalProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/login';
+  };
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Home, gradient: 'gradient-purple' },
@@ -158,7 +165,8 @@ export function TeacherPortal({}: TeacherPortalProps) {
           </Button>
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 ${
+            onClick={() => setShowLogoutDialog(true)}
+            className={`w-full justify-start gap-3 text-red-650 hover:text-red-700 hover:bg-red-50 ${
               sidebarCollapsed ? 'px-3' : 'px-4'
             }`}
           >
@@ -172,6 +180,11 @@ export function TeacherPortal({}: TeacherPortalProps) {
       <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
+      <LogoutConfirmDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

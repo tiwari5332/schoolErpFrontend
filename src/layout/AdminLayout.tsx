@@ -7,6 +7,7 @@ const menuItems = [
   { id: 'overview', label: 'Dashboard' },
   { id: 'students', label: 'Students' },
   { id: 'teachers', label: 'Teachers' },
+  { id: 'exams', label: 'Exam Management' },
   { id: 'admins', label: 'Administrators' },
 ];
 
@@ -20,6 +21,7 @@ export function AdminLayout() {
   const getActiveSection = () => {
     if (path.includes('students')) return 'students';
     if (path.includes('teachers')) return 'teachers';
+    if (path.includes('exams')) return 'exams';
     if (path.includes('admins')) return 'admins';
     return 'overview';
   };

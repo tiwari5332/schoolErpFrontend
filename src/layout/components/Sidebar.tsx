@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { LogoutConfirmDialog } from "../../components/LogoutConfirmDialog";
 import { SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "../../components/ui/sidebar";
 import { EduTrioLogoSimple } from "@/components/EduTrioLogo";
 import { 
@@ -11,7 +13,8 @@ import {
   Wallet,
   Calendar,
   Megaphone,
-  Network
+  Network,
+  ClipboardCheck
 } from "lucide-react";
 
 const menuItems = [
@@ -20,6 +23,7 @@ const menuItems = [
   { id: 'students', label: 'Students', icon: GraduationCap, color: 'cyan', path: '/admin-dashboard/students' },
   { id: 'teachers', label: 'Teachers', icon: Users, color: 'emerald', path: '/admin-dashboard/teachers' },
   { id: 'schedule', label: 'Schedule & Timetable', icon: Calendar, color: 'rose', path: '/admin-dashboard/schedule' },
+  { id: 'exams', label: 'Exam Management', icon: ClipboardCheck, color: 'indigo', path: '/admin-dashboard/exams' },
   { id: 'communication', label: 'Communication Hub', icon: Megaphone, color: 'blue', path: '/admin-dashboard/communication' },
   { id: 'fees', label: 'Fee Management', icon: Wallet, color: 'amber', path: '/admin-dashboard/fees' },
   { id: 'admins', label: 'Administrators', icon: UserCheck, color: 'purple', path: '/admin-dashboard/admins' },
@@ -28,6 +32,12 @@ const menuItems = [
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    navigate('/login');
+  };
 
   const isActive = (path: string) => location.pathname === path;
 console.log("Sidebar active path:", location.pathname);
@@ -79,13 +89,22 @@ console.log("Sidebar active path:", location.pathname);
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group">
+            <SidebarMenuButton 
+              onClick={() => setShowLogoutDialog(true)}
+              className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group"
+            >
               <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
               <span className="ml-3 font-medium">Logout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </div>
       </SidebarContent>
+
+      <LogoutConfirmDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

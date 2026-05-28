@@ -36,12 +36,19 @@ import {
   Lightbulb
 } from "lucide-react";
 import { EduTrioLogo } from "./EduTrioLogo";
+import { LogoutConfirmDialog } from "./LogoutConfirmDialog";
 
 interface StudentPortalProps {}
 
 export function StudentPortal({}: StudentPortalProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/login';
+  };
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, gradient: 'gradient-indigo' },
@@ -674,7 +681,8 @@ export function StudentPortal({}: StudentPortalProps) {
           </Button>
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 ${
+            onClick={() => setShowLogoutDialog(true)}
+            className={`w-full justify-start gap-3 text-red-650 hover:text-red-700 hover:bg-red-50 ${
               sidebarCollapsed ? 'px-3' : 'px-4'
             }`}
           >
@@ -688,6 +696,11 @@ export function StudentPortal({}: StudentPortalProps) {
       <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
+      <LogoutConfirmDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { EduTrioLogo } from "./EduTrioLogo";
 import { ParentOverview } from "./ParentOverview";
+import { LogoutConfirmDialog } from "./LogoutConfirmDialog";
 
 interface ParentPortalProps {}
 
@@ -42,6 +43,12 @@ export function ParentPortal({}: ParentPortalProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/login';
+  };
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Home, gradient: 'gradient-emerald' },
@@ -726,6 +733,7 @@ export function ParentPortal({}: ParentPortalProps) {
           </Button>
           <Button
             variant="ghost"
+            onClick={() => setShowLogoutDialog(true)}
             className={`w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 ${
               sidebarCollapsed ? 'px-3' : 'px-4'
             }`}
@@ -740,6 +748,11 @@ export function ParentPortal({}: ParentPortalProps) {
       <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
+      <LogoutConfirmDialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

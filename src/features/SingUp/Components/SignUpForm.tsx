@@ -9,6 +9,8 @@ import { ArrowRight } from "lucide-react";
 import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
 import { User } from "lucide-react";
+import { Phone } from "lucide-react";
+import { School } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import { useSignUp } from "../Hooks/useSignUp";
 import { SIGNUP_TEXT } from "../Constants";
@@ -45,6 +47,51 @@ const SignUpForm = () => {
         </div>
       )}
     </div>
+
+    {/* Mobile Number Field */}
+    <div className="space-y-2">
+      <Label htmlFor="mobile">{SIGNUP_TEXT.MOBILE_NUMBER_LABEL}</Label>
+      <div className="relative">
+        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          id="mobile"
+          type="tel"
+          placeholder={SIGNUP_TEXT.MOBILE_NUMBER_PLACEHOLDER}
+          value={formData.mobile}
+          onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+          className={`pl-10 ${errors.mobile ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+        />
+      </div>
+      {errors.mobile && (
+        <div className="flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{errors.mobile}</span>
+        </div>
+      )}
+    </div>
+
+    {/* School Name Field */}
+    <div className="space-y-2">
+      <Label htmlFor="schoolName">{SIGNUP_TEXT.SCHOOL_NAME_LABEL}</Label>
+      <div className="relative">
+        <School className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          id="schoolName"
+          type="text"
+          placeholder={SIGNUP_TEXT.SCHOOL_NAME_PLACEHOLDER}
+          value={formData.schoolName}
+          onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+          className={`pl-10 ${errors.schoolName ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+        />
+      </div>
+      {errors.schoolName && (
+        <div className="flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{errors.schoolName}</span>
+        </div>
+      )}
+    </div>
+
     <div className="space-y-2">
       <Label htmlFor="email">{SIGNUP_TEXT.EMAIL_LABEL}</Label>
       <div className="relative">

@@ -9,21 +9,25 @@ import {
   TeacherDocument
 } from '../Constants';
 
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
+
 const USE_MOCK = true;
 
 export const TeacherApi = {
   getTeachers: async (): Promise<Teacher[]> => {
     if (USE_MOCK) {
-      await delay(500);
-      return [...INITIAL_TEACHERS];
+      await delay(200);
+      const teachers = LocalStorageSync.get<Teacher[]>("edu_trio_teachers");
+      return teachers || [];
     }
     return await ApiService.get<Teacher[]>('/teachers');
   },
 
   getTeacherById: async (id: string): Promise<Teacher | undefined> => {
     if (USE_MOCK) {
-      await delay(300);
-      return INITIAL_TEACHERS.find(t => t.id === id);
+      await delay(100);
+      const teachers = LocalStorageSync.get<Teacher[]>("edu_trio_teachers");
+      return teachers?.find(t => t.id === id);
     }
     return await ApiService.get<Teacher>(`/teachers/${id}`);
   },

@@ -82,28 +82,28 @@ export function TeacherTable({ teachers, onViewTeacher, onEditTeacher, onDeleteT
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {teacher.subjects.slice(0, 2).map((subject, index) => (
+                      {(teacher.subjects || []).slice(0, 2).map((subject, index) => (
                         <Badge key={index} variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-200">
                           {subject}
                         </Badge>
                       ))}
-                      {teacher.subjects.length > 2 && (
+                      {(teacher.subjects || []).length > 2 && (
                         <Badge variant="outline" className="text-xs bg-slate-50 text-slate-700 border-slate-200">
-                          +{teacher.subjects.length - 2}
+                          +{(teacher.subjects || []).length - 2}
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {teacher.classes.slice(0, 2).map((cls, index) => (
+                      {(teacher.classes || []).slice(0, 2).map((cls, index) => (
                         <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
                           {cls}
                         </Badge>
                       ))}
-                      {teacher.classes.length > 2 && (
+                      {(teacher.classes || []).length > 2 && (
                         <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                          +{teacher.classes.length - 2}
+                          +{(teacher.classes || []).length - 2}
                         </Badge>
                       )}
                     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,75 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Edit, Eye, Trash2, Shield, Key, UserCheck, UserPlus, Users } from "lucide-react";
-
-// Mock admin data
-const admins = [
-  {
-    id: 'ADM001',
-    name: 'John Anderson',
-    email: 'john.anderson@school.edu',
-    phone: '+1 234-567-8001',
-    role: 'Super Admin',
-    department: 'Administration',
-    permissions: ['All Access'],
-    status: 'Active',
-    lastLogin: '2024-01-20 09:15 AM',
-    createdDate: '2020-01-15',
-    avatar: ''
-  },
-  {
-    id: 'ADM002',
-    name: 'Maria Garcia',
-    email: 'maria.garcia@school.edu',
-    phone: '+1 234-567-8002',
-    role: 'Academic Admin',
-    department: 'Academics',
-    permissions: ['Student Management', 'Teacher Management', 'Academic Reports'],
-    status: 'Active',
-    lastLogin: '2024-01-20 08:30 AM',
-    createdDate: '2021-03-10',
-    avatar: ''
-  },
-  {
-    id: 'ADM003',
-    name: 'David Kim',
-    email: 'david.kim@school.edu',
-    phone: '+1 234-567-8003',
-    role: 'Finance Admin',
-    department: 'Finance',
-    permissions: ['Fee Management', 'Financial Reports', 'Payment Processing'],
-    status: 'Active',
-    lastLogin: '2024-01-19 04:45 PM',
-    createdDate: '2022-06-20',
-    avatar: ''
-  },
-  {
-    id: 'ADM004',
-    name: 'Lisa Thompson',
-    email: 'lisa.thompson@school.edu',
-    phone: '+1 234-567-8004',
-    role: 'IT Admin',
-    department: 'IT',
-    permissions: ['System Management', 'User Accounts', 'Technical Support'],
-    status: 'Active',
-    lastLogin: '2024-01-20 07:20 AM',
-    createdDate: '2021-09-05',
-    avatar: ''
-  },
-  {
-    id: 'ADM005',
-    name: 'Robert Lee',
-    email: 'robert.lee@school.edu',
-    phone: '+1 234-567-8005',
-    role: 'HR Admin',
-    department: 'Human Resources',
-    permissions: ['Staff Management', 'Attendance', 'HR Reports'],
-    status: 'Inactive',
-    lastLogin: '2024-01-15 02:10 PM',
-    createdDate: '2023-02-14',
-    avatar: ''
-  }
-];
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
 
 const roles = ['Super Admin', 'Academic Admin', 'Finance Admin', 'IT Admin', 'HR Admin'];
 const departments = ['Administration', 'Academics', 'Finance', 'IT', 'Human Resources'];
@@ -99,9 +31,123 @@ const allPermissions = [
 ];
 
 export function AdminList() {
+  const [admins, setAdmins] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  
+  // Modals/Dialogs state
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
+  // Selection state
+  const [selectedAdmin, setSelectedAdmin] = useState<any | null>(null);
+  const [editCandidate, setEditCandidate] = useState<any | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<any | null>(null);
+
+  // Form inputs state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'Academic Admin',
+    department: 'Academics',
+    permissions: [] as string[],
+    status: 'Active'
+  });
+
+  useEffect(() => {
+    const list = LocalStorageSync.get<any[]>("edu_trio_admins") || [];
+    setAdmins(list);
+  }, []);
+
+  const saveAdminsToStorage = (updatedList: any[]) => {
+    setAdmins(updatedList);
+    LocalStorageSync.set("edu_trio_admins", updatedList);
+  };
+
+  const handlePermissionChange = (perm: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: checked 
+        ? [...prev.permissions, perm]
+        : prev.permissions.filter(p => p !== perm)
+    }));
+  };
+
+  const handleOpenAddDialog = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      role: 'Academic Admin',
+      department: 'Academics',
+      permissions: [],
+      status: 'Active'
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  const handleAddSubmit = () => {
+    if (!formData.name || !formData.email) {
+      alert("Name and Email are required.");
+      return;
+    }
+    const newAdmin = {
+      ...formData,
+      id: `ADM${String(admins.length + 1).padStart(3, '0')}`,
+      lastLogin: 'Never',
+      createdDate: new Date().toISOString().split('T')[0],
+      avatar: ''
+    };
+    const updated = [...admins, newAdmin];
+    saveAdminsToStorage(updated);
+    setIsAddDialogOpen(false);
+  };
+
+  const handleOpenEditDialog = (admin: any) => {
+    setEditCandidate(admin);
+    setFormData({
+      name: admin.name,
+      email: admin.email,
+      phone: admin.phone || '',
+      role: admin.role,
+      department: admin.department,
+      permissions: admin.permissions || [],
+      status: admin.status
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editCandidate) return;
+    const updated = admins.map(a => a.id === editCandidate.id ? {
+      ...a,
+      ...formData
+    } : a);
+    saveAdminsToStorage(updated);
+    setIsEditDialogOpen(false);
+    setEditCandidate(null);
+  };
+
+  const handleOpenDeleteDialog = (admin: any) => {
+    setDeleteCandidate(admin);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteSubmit = () => {
+    if (!deleteCandidate) return;
+    const updated = admins.filter(a => a.id !== deleteCandidate.id);
+    saveAdminsToStorage(updated);
+    setIsDeleteDialogOpen(false);
+    setDeleteCandidate(null);
+  };
+
+  const handleViewAdmin = (admin: any) => {
+    setSelectedAdmin(admin);
+    setIsDetailDialogOpen(true);
+  };
 
   const filteredAdmins = admins.filter(admin => {
     const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,12 +167,13 @@ export function AdminList() {
         </div>
         <div className="flex gap-3">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 gradient-purple text-white shadow-colored-purple hover:scale-[1.02] transition-all duration-200">
-                <UserPlus className="h-4 w-4" />
-                Add Admin
-              </Button>
-            </DialogTrigger>
+            <Button 
+              onClick={handleOpenAddDialog}
+              className="gap-2 gradient-purple text-white shadow-colored-purple hover:scale-[1.02] transition-all duration-200"
+            >
+              <UserPlus className="h-4 w-4" />
+              Add Admin
+            </Button>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Add New Admin</DialogTitle>
@@ -135,19 +182,38 @@ export function AdminList() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
-                  <Input id="name" placeholder="Enter admin's full name" className="h-10" />
+                  <Input 
+                    id="name" 
+                    value={formData.name} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter admin's full name" 
+                    className="h-10" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
-                  <Input id="email" type="email" placeholder="admin@school.edu" className="h-10" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={formData.email} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="admin@school.edu" 
+                    className="h-10" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
-                  <Input id="phone" placeholder="+1 (555) 000-0000" className="h-10" />
+                  <Input 
+                    id="phone" 
+                    value={formData.phone} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+1 (555) 000-0000" 
+                    className="h-10" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-sm font-medium">Role *</Label>
-                  <Select>
+                  <Select value={formData.role} onValueChange={(val) => setFormData(prev => ({ ...prev, role: val }))}>
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
@@ -160,7 +226,7 @@ export function AdminList() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department" className="text-sm font-medium">Department *</Label>
-                  <Select>
+                  <Select value={formData.department} onValueChange={(val) => setFormData(prev => ({ ...prev, department: val }))}>
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
@@ -176,7 +242,11 @@ export function AdminList() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                     {allPermissions.map(permission => (
                       <div key={permission} className="flex items-center space-x-2">
-                        <Checkbox id={permission} />
+                        <Checkbox 
+                          id={permission} 
+                          checked={formData.permissions.includes(permission)} 
+                          onCheckedChange={(checked) => handlePermissionChange(permission, !!checked)} 
+                        />
                         <label htmlFor={permission} className="text-sm text-slate-600 cursor-pointer">
                           {permission}
                         </label>
@@ -189,7 +259,7 @@ export function AdminList() {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => setIsAddDialogOpen(false)} className="gradient-purple text-white shadow-colored-purple">
+                <Button onClick={handleAddSubmit} className="gradient-purple text-white shadow-colored-purple">
                   Add Admin
                 </Button>
               </div>
@@ -348,15 +418,30 @@ export function AdminList() {
                         {admin.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                     <TableCell className="text-right pr-6">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-50 hover:scale-110 transition-all duration-200">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewAdmin(admin)}
+                          className="h-8 w-8 p-0 hover:bg-purple-50 hover:scale-110 transition-all duration-200"
+                        >
                           <Eye className="h-4 w-4 text-purple-600" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-pink-50 hover:scale-110 transition-all duration-200">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleOpenEditDialog(admin)}
+                          className="h-8 w-8 p-0 hover:bg-pink-50 hover:scale-110 transition-all duration-200"
+                        >
                           <Edit className="h-4 w-4 text-pink-600" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-rose-50 hover:scale-110 transition-all duration-200">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleOpenDeleteDialog(admin)}
+                          className="h-8 w-8 p-0 hover:bg-rose-50 hover:scale-110 transition-all duration-200"
+                        >
                           <Trash2 className="h-4 w-4 text-rose-600" />
                         </Button>
                       </div>
@@ -368,6 +453,194 @@ export function AdminList() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Admin Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Edit Admin</DialogTitle>
+            <DialogDescription>Modify administrator details and permissions</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name" className="text-sm font-medium">Full Name *</Label>
+              <Input 
+                id="edit-name" 
+                value={formData.name} 
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} 
+                className="h-10" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email" className="text-sm font-medium">Email Address *</Label>
+              <Input 
+                id="edit-email" 
+                type="email" 
+                value={formData.email} 
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} 
+                className="h-10" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone" className="text-sm font-medium">Phone Number</Label>
+              <Input 
+                id="edit-phone" 
+                value={formData.phone} 
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} 
+                className="h-10" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role" className="text-sm font-medium">Role *</Label>
+              <Select value={formData.role} onValueChange={(val) => setFormData(prev => ({ ...prev, role: val }))}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map(role => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-department" className="text-sm font-medium">Department *</Label>
+              <Select value={formData.department} onValueChange={(val) => setFormData(prev => ({ ...prev, department: val }))}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-status" className="text-sm font-medium">Status *</Label>
+              <Select value={formData.status} onValueChange={(val) => setFormData(prev => ({ ...prev, status: val }))}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-sm font-medium">Permissions</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                {allPermissions.map(permission => (
+                  <div key={permission} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`edit-${permission}`} 
+                      checked={formData.permissions.includes(permission)} 
+                      onCheckedChange={(checked) => handlePermissionChange(permission, !!checked)} 
+                    />
+                    <label htmlFor={`edit-${permission}`} className="text-sm text-slate-600 cursor-pointer">
+                      {permission}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSubmit} className="gradient-purple text-white shadow-colored-purple">
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Admin Details Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="max-w-md glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Admin Details</DialogTitle>
+          </DialogHeader>
+          {selectedAdmin && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 ring-2 ring-purple-100">
+                  <AvatarImage src={selectedAdmin.avatar} />
+                  <AvatarFallback className="gradient-purple text-white font-semibold text-lg">
+                    {selectedAdmin.name.split(' ').map((n: any) => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-900">{selectedAdmin.name}</h4>
+                  <p className="text-sm text-slate-500">{selectedAdmin.id}</p>
+                  <Badge className="bg-purple-100 text-purple-800 border-purple-250 mt-1">{selectedAdmin.role}</Badge>
+                </div>
+              </div>
+              <div className="border-t pt-4 space-y-2.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Email:</span>
+                  <span className="text-slate-900">{selectedAdmin.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Phone:</span>
+                  <span className="text-slate-900">{selectedAdmin.phone || '—'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Department:</span>
+                  <span className="text-slate-900">{selectedAdmin.department}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Status:</span>
+                  <span className="text-slate-900">{selectedAdmin.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Created Date:</span>
+                  <span className="text-slate-900">{selectedAdmin.createdDate}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Last Login:</span>
+                  <span className="text-slate-900">{selectedAdmin.lastLogin}</span>
+                </div>
+                <div className="space-y-1.5 pt-2">
+                  <span className="text-slate-500 font-medium block">Assigned Permissions:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedAdmin.permissions.map((p: any) => (
+                      <Badge key={p} variant="outline" className="bg-slate-50 text-slate-700 text-xs px-2 py-0.5 rounded-md border-slate-200">{p}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end pt-4 border-t">
+            <Button onClick={() => setIsDetailDialogOpen(false)} className="gradient-purple text-white">
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-rose-650">Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you absolutely sure you want to delete administrator <span className="font-semibold">{deleteCandidate?.name}</span>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteSubmit} className="bg-rose-650 hover:bg-rose-700 text-white font-semibold shadow-colored-rose">
+              Delete Admin
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

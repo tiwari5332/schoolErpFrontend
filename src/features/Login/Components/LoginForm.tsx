@@ -8,10 +8,13 @@ import { ArrowRight } from "lucide-react";
 import { Lock } from "lucide-react";
 import { EyeOff } from "lucide-react";
 import { AlertCircle } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import ROUTES from '../../../router/RouterConstant';
 import { useLogin } from "../Hooks/useLogin";
 import { LOGIN_TEXT } from "../Constants";
 
 const LoginForm = () => {
+  const navigate = useNavigate();
   const {
     formData,
     setFormData,
@@ -19,7 +22,6 @@ const LoginForm = () => {
     setErrors,
     showPassword,
     setShowPassword,
-    setIsForgotPassword,
     isLoading,
     handleSubmit
   } = useLogin();
@@ -89,8 +91,8 @@ const LoginForm = () => {
         <button
           type="button"
           onClick={() => {
-            setIsForgotPassword(true);
             setErrors({});
+            navigate(ROUTES.FORGOT_PASSWORD);
           }}
           className="text-sm text-indigo-600 hover:text-indigo-700"
         >

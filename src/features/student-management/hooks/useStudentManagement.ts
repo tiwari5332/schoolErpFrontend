@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Student } from '../constant';
 import { StudentApi } from '../api/StudentApi';
 
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
+
 export function useStudentManagement() {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +34,23 @@ export function useStudentManagement() {
     };
     
     fetchStudents();
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("action") === "add") {
+        setIsFormOpen(true);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
   }, []);
+
+  // Save to Local Storage when students list changes
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_students", students);
+    }
+  }, [students, isLoading]);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
