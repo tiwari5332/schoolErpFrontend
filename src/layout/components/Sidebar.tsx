@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LogoutConfirmDialog } from "../../components/LogoutConfirmDialog";
-import { SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "../../components/ui/sidebar";
+import { SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "../../components/ui/sidebar";
 import { EduTrioLogoSimple } from "@/components/EduTrioLogo";
 import { 
   Users, 
@@ -40,9 +40,9 @@ export function Sidebar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
-console.log("Sidebar active path:", location.pathname);
+
   return (
-    <div className="border-r-0 shadow-xl">
+    <div className="border-r-0 shadow-xl flex flex-col h-full">
       <SidebarHeader className="border-b border-slate-200/50 px-6 py-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -80,25 +80,26 @@ console.log("Sidebar active path:", location.pathname);
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-        
-        <div className="mt-auto pt-8 space-y-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-slate-100 hover:scale-[1.02] group">
-              <Settings className="h-5 w-5 text-slate-500 group-hover:text-slate-700 group-hover:rotate-90 transition-all duration-300" />
-              <span className="ml-3 font-medium text-slate-700">Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              onClick={() => setShowLogoutDialog(true)}
-              className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group"
-            >
-              <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
-              <span className="ml-3 font-medium">Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </div>
       </SidebarContent>
+
+      {/* Settings & Logout pinned to bottom */}
+      <SidebarFooter className="border-t border-slate-200/50 px-4 py-4 bg-gradient-to-t from-slate-50/80 to-white space-y-1">
+        <SidebarMenuItem>
+          <SidebarMenuButton className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-slate-100 hover:scale-[1.02] group">
+            <Settings className="h-5 w-5 text-slate-500 group-hover:text-slate-700 group-hover:rotate-90 transition-all duration-300" />
+            <span className="ml-3 font-medium text-slate-700">Settings</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton 
+            onClick={() => setShowLogoutDialog(true)}
+            className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group"
+          >
+            <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
+            <span className="ml-3 font-medium">Logout</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarFooter>
 
       <LogoutConfirmDialog
         open={showLogoutDialog}
