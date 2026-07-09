@@ -85,9 +85,20 @@ export function Sidebar() {
       {/* Settings & Logout pinned to bottom */}
       <SidebarFooter className="border-t border-slate-200/50 px-4 py-4 bg-gradient-to-t from-slate-50/80 to-white space-y-1">
         <SidebarMenuItem>
-          <SidebarMenuButton className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-slate-100 hover:scale-[1.02] group">
-            <Settings className="h-5 w-5 text-slate-500 group-hover:text-slate-700 group-hover:rotate-90 transition-all duration-300" />
-            <span className="ml-3 font-medium text-slate-700">Settings</span>
+          <SidebarMenuButton
+            onClick={() => navigate('/admin-dashboard/settings')}
+            className={`w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:scale-[1.02] group ${
+              isActive('/admin-dashboard/settings')
+                ? 'gradient-indigo text-white shadow-colored-indigo'
+                : 'hover:bg-slate-100'
+            }`}
+          >
+            <Settings className={`h-5 w-5 ${
+              isActive('/admin-dashboard/settings') ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'
+            } group-hover:rotate-90 transition-all duration-300`} />
+            <span className={`ml-3 font-medium ${
+              isActive('/admin-dashboard/settings') ? 'text-white' : 'text-slate-700'
+            }`}>Settings</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>

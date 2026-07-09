@@ -17,6 +17,8 @@ const ScheduleManagementPage = lazy(() => import("../pages/ScheduleManagementPag
 const CommunicationPage = lazy(() => import("../pages/CommunicationPage/index.tsx"));
 const AcademicSetupPage = lazy(() => import("../pages/AcademicSetupPage/index.tsx"));
 const ExamManagementPage = lazy(() => import("../pages/ExamManagementPage/index.tsx"));
+const SettingsPage = lazy(() => import("../pages/SettingsPage/index.tsx"));
+const ProfilePage = lazy(() => import("../pages/ProfilePage/index.tsx"));
 
 const AppRouter = createBrowserRouter([
   {
@@ -86,6 +88,14 @@ const AppRouter = createBrowserRouter([
     {
       path: "admins",
       element: <AdminsPage />,
+    },
+    {
+      path: "settings",
+      element: <SettingsPage />,
+    },
+    {
+      path: "profile",
+      element: <ProfilePage />,
     },
   ],
 }
