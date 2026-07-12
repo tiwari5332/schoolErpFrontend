@@ -5,6 +5,7 @@ const ROUTES = {
     FORGOT_PASSWORD: '/forgot-password',
     DASHBOARD: '/dashboard',
     ADMIN_DASHBOARD: '/admin-dashboard',
+    EXAMS: '/admin-dashboard/exams',
     PROFILE: '/profile',
     SETTINGS: '/settings',
     NOT_FOUND: '*',

@@ -13,8 +13,9 @@ import { TeacherAttendanceTable } from '../Components/TeacherAttendanceTable';
 import { SalaryStructureTable } from '../Components/SalaryStructureTable';
 import { PayslipManagement } from '../Components/PayslipManagement';
 import { EmployeeSettingsPanel } from '../Components/EmployeeSettingsPanel';
+import { EmployeeCalendar } from '../Components/EmployeeCalendar';
 import { Teacher, DEPARTMENTS } from '../Constants';
-import { useTeacherList } from '../hooks/useTeacherList.ts';
+import { useTeacherList } from '../Hooks/useTeacherList';
 
 export function TeacherList() {
   const {
@@ -186,21 +187,8 @@ export function TeacherList() {
             <EmployeeSettingsPanel />
           )}
 
-          {['calendar'].includes(activeTab) && (
-            <Card className="border-0 shadow-xl glass-card h-[400px] flex items-center justify-center">
-              <CardContent className="flex flex-col items-center space-y-4 text-center">
-                <div className="h-20 w-20 bg-indigo-50 rounded-full flex items-center justify-center animate-pulse-slow">
-                  <Calendar className="h-10 w-10 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Module Under Construction</h3>
-                  <p className="text-slate-500 mt-2 max-w-md">The <span className="capitalize font-medium text-slate-700">{activeTab.replace('-', ' ')}</span> module is currently being built and will be available in a future update.</p>
-                </div>
-                <Button variant="outline" onClick={() => setActiveTab('employee-list')} className="mt-4 border-2 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-                  Return to Employee List
-                </Button>
-              </CardContent>
-            </Card>
+          {activeTab === 'calendar' && (
+            <EmployeeCalendar teachers={teachers} />
           )}
         </>
       )}

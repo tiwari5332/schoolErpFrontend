@@ -255,6 +255,29 @@
 }
 
 @layer base {
+
+  /* Global cursor: pointer for all interactive / CTA elements */
+  button,
+  a,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  [role="link"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [data-slot="sidebar-menu-button"],
+  summary {
+    cursor: pointer;
+  }
   
   body {
     @apply bg-background text-foreground;

@@ -17,6 +17,8 @@ const MOCK_SUBJECTS: Subject[] = [
   { id: 'SUB5', name: 'Computer Science', code: 'CS101', type: 'Elective' },
 ];
 
+import { LocalStorageSync } from '../../../services/LocalStorageSync';
+
 export function useAcademicSetup() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [classes, setClasses] = useState<ClassGroup[]>([]);
@@ -28,7 +30,7 @@ export function useAcademicSetup() {
   const [classSubjects, setClassSubjects] = useState<Record<string, string[]>>({});
   
   const [subjectMappings, setSubjectMappings] = useState<Record<string, Record<string, string>>>({});
-
+ 
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
 
@@ -51,6 +53,16 @@ export function useAcademicSetup() {
         setClasses(fetchedClasses);
         setStudents(fetchedStudents);
         setSetupTeachers(fetchedTeachers);
+
+        // Load subjects and mappings from local storage
+        const storedSubjects = LocalStorageSync.get<Subject[]>("edu_trio_subjects");
+        if (storedSubjects) setSubjects(storedSubjects);
+
+        const storedClassSubjects = LocalStorageSync.get<Record<string, string[]>>("edu_trio_class_subjects");
+        if (storedClassSubjects) setClassSubjects(storedClassSubjects);
+
+        const storedSubjectMappings = LocalStorageSync.get<Record<string, Record<string, string>>>("edu_trio_subject_mappings");
+        if (storedSubjectMappings) setSubjectMappings(storedSubjectMappings);
       } catch (error) {
         console.error("Failed to fetch academic setup data", error);
       } finally {
@@ -59,6 +71,49 @@ export function useAcademicSetup() {
     };
     fetchAcademicData();
   }, []);
+
+  // Save to Local Storage when states change
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_classes", classes);
+    }
+  }, [classes, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_departments", departments);
+    }
+  }, [departments, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_students", students);
+    }
+  }, [students, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_teachers", setupTeachers);
+    }
+  }, [setupTeachers, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_subjects", subjects);
+    }
+  }, [subjects, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_class_subjects", classSubjects);
+    }
+  }, [classSubjects, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      LocalStorageSync.set("edu_trio_subject_mappings", subjectMappings);
+    }
+  }, [subjectMappings, isLoading]);
 
   const handleSaveDepartment = async (dept: Partial<Department>) => {
     try {

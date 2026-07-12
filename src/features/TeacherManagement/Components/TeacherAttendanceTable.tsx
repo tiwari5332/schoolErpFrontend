@@ -14,7 +14,7 @@ import {
   PaginationPrevious
 } from "@/components/ui/pagination";
 import { Teacher } from '../Constants';
-import { Badge } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface TeacherAttendanceTableProps {
   teachers: Teacher[];

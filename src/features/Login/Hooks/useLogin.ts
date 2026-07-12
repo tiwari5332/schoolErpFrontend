@@ -45,11 +45,39 @@ export function useLogin() {
     try {
       setIsLoading(true);
       setErrors({});
-      const response = await AuthApi.login(formData.email, formData.password);
-      
-      // Success - set auth token and redirect to dashboard
-      localStorage.setItem('auth_token', response.token);
-      navigate(ROUTES.ADMIN_DASHBOARD);
+
+      // First try the hardcoded admin login via AuthApi
+      let response: any = null;
+      let loginSuccess = false;
+
+      try {
+        response = await AuthApi.login(formData.email, formData.password);
+        loginSuccess = true;
+      } catch {
+        // Hardcoded admin login failed — check localStorage registered users
+        const registeredUsers = JSON.parse(localStorage.getItem('edu_trio_registered_users') || '[]');
+        const matchedUser = registeredUsers.find(
+          (u: any) => u.email === formData.email && u.password === formData.password
+        );
+
+        if (matchedUser) {
+          response = {
+            token: btoa(matchedUser.email),
+            user: { name: matchedUser.name, email: matchedUser.email, role: matchedUser.role }
+          };
+          loginSuccess = true;
+        }
+      }
+
+      if (loginSuccess && response) {
+        localStorage.setItem('auth_token', response.token);
+        navigate(ROUTES.ADMIN_DASHBOARD);
+      } else {
+        setErrors({
+          email: 'Invalid ID or Password',
+          password: 'Invalid ID or Password'
+        });
+      }
     } catch (err: any) {
       setErrors({
         email: err.message || 'Invalid ID or Password',

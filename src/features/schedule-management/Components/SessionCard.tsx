@@ -28,7 +28,7 @@ export function SessionCard({ session, subject, teacher, onClick, viewMode = 'cl
           </div>
         ) : (
           <div className="flex items-center gap-1 font-medium">
-            <span className="truncate">Class: {session.classId.replace('CLS', 'Grade ')}</span>
+            <span className="truncate">Class: {session.classId.startsWith('SEC') ? session.classId.replace('SEC', 'Grade ') : session.classId.replace('CLS', 'Grade ')}</span>
           </div>
         )}
         <div className="flex items-center gap-1 truncate" title={session.room}>
