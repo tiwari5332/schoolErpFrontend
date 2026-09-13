@@ -1,4 +1,3 @@
-
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Mail } from "lucide-react";
@@ -7,10 +6,10 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Button } from "../../../components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Lock } from "lucide-react";
-import { EyeOff } from "lucide-react";
 import { User } from "lucide-react";
 import { Phone } from "lucide-react";
 import { School } from "lucide-react";
+import { EyeOff } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import { useSignUp } from "../Hooks/useSignUp";
 import { SIGNUP_TEXT } from "../Constants";
@@ -188,6 +187,7 @@ const SignUpForm = () => {
         </div>
       )}
     </div>
+
     <Button
       type="submit"
       disabled={isLoading}
@@ -203,6 +203,14 @@ const SignUpForm = () => {
         </>
       )}
     </Button>
+
+    {/* General Submission Error Box Displayed Below Submit Button */}
+    {errors.submit && (
+      <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2 text-xs text-rose-700 mt-2">
+        <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+        <span>{errors.submit}</span>
+      </div>
+    )}
   </form>
 }
 

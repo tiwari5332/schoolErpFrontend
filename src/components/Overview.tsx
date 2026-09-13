@@ -8,12 +8,16 @@ import { Users, GraduationCap, UserCheck, DollarSign, TrendingUp, Calendar, Book
 import { useNavigate } from 'react-router-dom';
 import { LocalStorageSync } from '../services/LocalStorageSync';
 
+import { useTeachersList } from '../api/queries/useTeachersQuery';
+
 export function Overview() {
   const navigate = useNavigate();
 
+  const { teachers: apiTeachers } = useTeachersList();
+  const teachers = apiTeachers || [];
+
   // Load from local storage
   const students = React.useMemo(() => LocalStorageSync.get<any[]>("edu_trio_students") || [], []);
-  const teachers = React.useMemo(() => LocalStorageSync.get<any[]>("edu_trio_teachers") || [], []);
   const admins = React.useMemo(() => LocalStorageSync.get<any[]>("edu_trio_admins") || [], []);
   const fees = React.useMemo(() => LocalStorageSync.get<any[]>("edu_trio_fees") || [], []);
   const announcements = React.useMemo(() => LocalStorageSync.get<any[]>("edu_trio_announcements") || [], []);

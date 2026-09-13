@@ -1,238 +1,237 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { BookOpen, Plus, Trash2, LayoutTemplate, ArrowRight } from "lucide-react";
-import { ClassGroup } from '../Constants';
-
-export interface Subject {
-  id: string;
-  name: string;
-  code: string;
-  type: 'Core' | 'Elective' | 'Language' | 'Extracurricular';
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { BookOpen, Plus, Trash2, Edit2, Search, Grid, Save } from "lucide-react";
+import { ClassGroup, Department, SetupSubject } from '../Constants';
 
 interface SubjectsTabProps {
-  subjects: Subject[];
+  subjects: SetupSubject[];
   classes: ClassGroup[];
-  classSubjects: Record<string, string[]>; // classGrpId -> array of subjectIds
-  onAddSubject: (subject: Omit<Subject, 'id'>) => void;
+  departments?: Department[];
+  classSubjects: Record<string, string[]>;
+  onAddSubject: (subject: Omit<SetupSubject, 'id'>) => void;
+  onUpdateSubject?: (id: string, updates: Partial<SetupSubject>) => void;
   onDeleteSubject: (id: string) => void;
   onAssignSubjectsToClass: (classGrpId: string, subjectIds: string[]) => void;
+  onOpenMatrixView?: () => void;
 }
 
-export function SubjectsTab({ subjects, classes, classSubjects, onAddSubject, onDeleteSubject, onAssignSubjectsToClass }: SubjectsTabProps) {
-  const [newSubName, setNewSubName] = useState('');
-  const [newSubCode, setNewSubCode] = useState('');
-  const [newSubType, setNewSubType] = useState<Subject['type']>('Core');
+export function SubjectsTab({
+  subjects = [],
+  classes = [],
+  departments = [],
+  classSubjects = {},
+  onAddSubject,
+  onUpdateSubject,
+  onDeleteSubject,
+  onAssignSubjectsToClass,
+  onOpenMatrixView,
+}: SubjectsTabProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<SetupSubject | null>(null);
   
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  
-  // Local state for checkboxes before saving
-  const [draftClassSubjects, setDraftClassSubjects] = useState<string[]>([]);
+  // Form fields
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
 
-  const handleAddSubmit = () => {
-    if (newSubName && newSubCode) {
-      onAddSubject({ name: newSubName, code: newSubCode, type: newSubType });
-      setNewSubName('');
-      setNewSubCode('');
-      setNewSubType('Core');
+  const openAddModal = () => {
+    setEditingSubject(null);
+    setName('');
+    setCode('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (sub: SetupSubject) => {
+    setEditingSubject(sub);
+    setName(sub.name);
+    setCode(sub.code);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveModal = () => {
+    if (!name || !code) return;
+
+    const payload = {
+      name,
+      code: code.toUpperCase(),
+    };
+
+    if (editingSubject && onUpdateSubject) {
+      onUpdateSubject(editingSubject.id, payload);
+    } else {
+      onAddSubject(payload);
     }
+    setIsModalOpen(false);
   };
 
-  const handleClassSelect = (classId: string) => {
-    setSelectedClassId(classId);
-    setDraftClassSubjects(classSubjects[classId] || []);
-  };
+  // Filter subjects
+  const filteredSubjects = (subjects || []).filter(sub => {
+    return sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.code.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
-  const toggleSubjectDraft = (subjectId: string) => {
-    setDraftClassSubjects(prev => 
-      prev.includes(subjectId) ? prev.filter(id => id !== subjectId) : [...prev, subjectId]
-    );
-  };
-
-  const handleSaveMapping = () => {
-    if (selectedClassId) {
-      onAssignSubjectsToClass(selectedClassId, draftClassSubjects);
-    }
+  const getMappedClassesCount = (subjectId: string) => {
+    return Object.values(classSubjects || {}).filter(list => (list || []).includes(subjectId)).length;
   };
 
   return (
     <div className="space-y-6">
-      <div className="grid lg:grid-cols-2 gap-6">
-        
-        {/* Left Panel: Subject Master List */}
-        <Card className="border-0 shadow-lg glass-card flex flex-col h-[600px]">
-          <CardHeader className="pb-4 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-indigo-500" />
-              Subject Master List
-            </CardTitle>
-            <CardDescription>Manage the global list of subjects available across the school.</CardDescription>
-          </CardHeader>
-          
-          <CardContent className="p-4 flex flex-col h-full gap-4">
-            {/* Add Subject Form */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-              <h4 className="text-sm font-semibold text-slate-700 mb-2">Create New Subject</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Subject Name</Label>
-                  <Input 
-                    placeholder="e.g. Mathematics" 
-                    value={newSubName}
-                    onChange={e => setNewSubName(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Subject Code</Label>
-                  <Input 
-                    placeholder="e.g. MAT101" 
-                    value={newSubCode}
-                    onChange={e => setNewSubCode(e.target.value)}
-                    className="h-9 text-sm uppercase"
-                  />
-                </div>
-                <div className="space-y-1 col-span-2">
-                  <Label className="text-xs">Subject Type</Label>
-                  <Select value={newSubType} onValueChange={(val: any) => setNewSubType(val)}>
-                    <SelectTrigger className="h-9 text-sm bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Core">Core</SelectItem>
-                      <SelectItem value="Elective">Elective</SelectItem>
-                      <SelectItem value="Language">Language</SelectItem>
-                      <SelectItem value="Extracurricular">Extracurricular</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button onClick={handleAddSubmit} disabled={!newSubName || !newSubCode} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white h-9">
-                <Plus className="h-4 w-4 mr-2" /> Add Subject
-              </Button>
-            </div>
+      {/* Header controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800">Subject Master Catalog</h3>
+          <p className="text-sm text-slate-500">Manage school-wide subjects and grade allocations.</p>
+        </div>
 
-            {/* List */}
-            <div className="flex-1 overflow-y-auto border border-slate-100 rounded-xl bg-white">
-              {subjects.length > 0 ? (
-                <div className="divide-y divide-slate-100">
-                  {subjects.map(sub => (
-                    <div key={sub.id} className="p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-indigo-50 flex flex-col items-center justify-center text-indigo-700 border border-indigo-100">
-                          <span className="text-[10px] font-bold uppercase leading-none">{sub.code.substring(0,3)}</span>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-slate-800">{sub.name}</h4>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{sub.code}</span>
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                              sub.type === 'Core' ? 'bg-blue-100 text-blue-700' :
-                              sub.type === 'Elective' ? 'bg-amber-100 text-amber-700' :
-                              sub.type === 'Language' ? 'bg-emerald-100 text-emerald-700' :
-                              'bg-purple-100 text-purple-700'
-                            }`}>
-                              {sub.type}
-                            </span>
-                          </div>
+        <div className="flex items-center gap-2">
+          {onOpenMatrixView && (
+            <Button
+              variant="outline"
+              onClick={onOpenMatrixView}
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-1.5"
+            >
+              <Grid className="h-4 w-4" /> Open Subject-Class Matrix
+            </Button>
+          )}
+          <Button onClick={openAddModal} className="gradient-indigo text-white shadow-colored-indigo">
+            <Plus className="h-4 w-4 mr-2" /> Add Subject
+          </Button>
+        </div>
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search subject by name or code..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 border-slate-200"
+          />
+        </div>
+      </div>
+
+      {/* Subject List Table */}
+      <Card className="border-0 shadow-lg glass-card overflow-hidden">
+        <CardContent className="p-0">
+          {filteredSubjects.length > 0 ? (
+            <div className="divide-y divide-slate-100 overflow-x-auto">
+              {filteredSubjects.map(sub => {
+                const mappedCount = getMappedClassesCount(sub.id);
+                return (
+                  <div key={sub.id} className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors gap-4">
+                    <div className="flex items-center gap-3 min-w-[240px]">
+                      <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-700 font-bold text-xs border border-indigo-100 uppercase shrink-0">
+                        {sub.code ? sub.code.substring(0, 3) : sub.name.substring(0, 2)}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-800">{sub.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{sub.code}</span>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600" onClick={() => onDeleteSubject(sub.id)}>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="hidden lg:flex flex-col text-right">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">Curriculum</span>
+                        <span className="font-medium text-slate-700">{mappedCount} Grades Mapped</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {onOpenMatrixView && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={onOpenMatrixView}
+                          className="h-8 text-xs text-indigo-600 hover:bg-indigo-50"
+                        >
+                          Map to Classes
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600" onClick={() => openEditModal(sub)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={() => onDeleteSubject(sub.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
-                  <BookOpen className="h-8 w-8 mb-2 opacity-50" />
-                  <p className="text-sm">No subjects created yet. Add one above.</p>
-                </div>
-              )}
+                  </div>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Right Panel: Class Mapping */}
-        <Card className="border-0 shadow-lg glass-card flex flex-col h-[600px]">
-          <CardHeader className="pb-4 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
-            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2 mb-3">
-              <LayoutTemplate className="h-5 w-5 text-emerald-500" />
-              Class Curriculum Mapping
-            </CardTitle>
-            <div className="space-y-1">
-              <Label className="text-xs text-slate-500">Select Grade/Class to configure its curriculum</Label>
-              <Select value={selectedClassId} onValueChange={handleClassSelect}>
-                <SelectTrigger className="border-slate-200 focus:border-emerald-400 bg-white">
-                  <SelectValue placeholder="Select Class..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.grade}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          ) : (
+            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center">
+              <BookOpen className="h-10 w-10 mb-3 opacity-40 text-indigo-400" />
+              <h4 className="text-base font-semibold text-slate-700 mb-1">No Subjects Found</h4>
+              <p className="text-xs text-slate-500 max-w-xs mb-4">
+                {searchTerm ? `No subjects matched search query "${searchTerm}".` : 'Create your subject master list to begin building class curriculums.'}
+              </p>
+              <Button onClick={openAddModal} className="gradient-indigo text-white text-xs">
+                <Plus className="h-4 w-4 mr-1.5" /> Add New Subject
+              </Button>
             </div>
-          </CardHeader>
-          
-          <CardContent className="p-0 flex flex-col h-full bg-slate-50/30">
-            {selectedClassId ? (
-              <div className="flex flex-col h-full p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-semibold text-slate-700">Assign Subjects</h4>
-                  <span className="text-xs font-medium bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                    {draftClassSubjects.length} Selected
-                  </span>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
-                  {subjects.length > 0 ? (
-                    subjects.map(sub => (
-                      <label key={sub.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer transition-colors group">
-                        <Checkbox 
-                          checked={draftClassSubjects.includes(sub.id)}
-                          onCheckedChange={() => toggleSubjectDraft(sub.id)}
-                          className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-slate-800 group-hover:text-emerald-700 transition-colors">
-                            {sub.name}
-                          </p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{sub.code} • {sub.type}</p>
-                        </div>
-                      </label>
-                    ))
-                  ) : (
-                     <div className="p-6 text-center text-sm text-slate-400">
-                       No subjects available to assign.
-                     </div>
-                  )}
-                </div>
+          )}
+        </CardContent>
+      </Card>
 
-                <Button 
-                  onClick={handleSaveMapping} 
-                  className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                >
-                  Save Curriculum for {classes.find(c => c.id === selectedClassId)?.grade}
-                </Button>
+      {/* Add / Edit Subject Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[480px] bg-white border-slate-200">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-800">
+              {editingSubject ? 'Edit Subject' : 'Add New Subject'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Configure subject name and code.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-slate-700">Subject Name *</Label>
+                <Input
+                  placeholder="e.g. Mathematics"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="border-slate-200"
+                />
               </div>
-            ) : (
-              <div className="p-10 text-center text-slate-400 h-full flex flex-col items-center justify-center">
-                <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                  <ArrowRight className="h-8 w-8 text-slate-300" />
-                </div>
-                <h4 className="text-lg font-medium text-slate-600 mb-1">No Class Selected</h4>
-                <p className="max-w-xs mx-auto text-sm">Please select a class from the dropdown above to manage its subjects.</p>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-slate-700">Subject Code *</Label>
+                <Input
+                  placeholder="e.g. MAT101"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  className="border-slate-200 uppercase"
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-3">
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="border-slate-200 text-slate-600">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveModal} disabled={!name || !code} className="gradient-indigo text-white gap-1.5">
+              <Save className="h-4 w-4" /> {editingSubject ? 'Save Changes' : 'Create Subject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+export default SubjectsTab;
+

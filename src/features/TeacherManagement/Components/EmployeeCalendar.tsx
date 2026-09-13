@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar, Sun, Palmtree } from "lucide-react";
-import { LocalStorageSync } from "../../../services/LocalStorageSync";
+
 import { Teacher } from '../Constants';
 
 interface EmployeeCalendarProps {
@@ -116,8 +116,7 @@ export function EmployeeCalendar({ teachers }: EmployeeCalendarProps) {
   // Get leave count for a date from attendance records
   const getLeaveCount = (date: Date): number => {
     const dateStr = date.toISOString().split('T')[0];
-    // Check attendance records for the given date
-    const records = LocalStorageSync.get<Record<string, string>>('edu_trio_teacher_attendance') || {};
+    const records: Record<string, string> = {};
     let count = 0;
     teachers.forEach(t => {
       const key = `${t.id}-${dateStr}`;

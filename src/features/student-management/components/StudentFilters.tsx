@@ -10,10 +10,10 @@ interface StudentFiltersProps {
   onSearchChange: (value: string) => void;
   selectedGrade: string;
   onGradeChange: (value: string) => void;
-  selectedStatus: string;
-  onStatusChange: (value: string) => void;
-  selectedFeeStatus: string;
-  onFeeStatusChange: (value: string) => void;
+  selectedStatus?: string;
+  onStatusChange?: (value: string) => void;
+  selectedFeeStatus?: string;
+  onFeeStatusChange?: (value: string) => void;
 }
 
 export function StudentFilters({ 
@@ -21,10 +21,10 @@ export function StudentFilters({
   onSearchChange, 
   selectedGrade, 
   onGradeChange,
-  selectedStatus,
-  onStatusChange,
-  selectedFeeStatus,
-  onFeeStatusChange
+  selectedStatus = 'all',
+  onStatusChange = () => {},
+  selectedFeeStatus = 'all',
+  onFeeStatusChange = () => {}
 }: StudentFiltersProps) {
   return (
     <Card className="border-0 shadow-xl hover-lift glass-card">

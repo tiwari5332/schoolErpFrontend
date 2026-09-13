@@ -1,15 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Teacher } from '../Constants';
-import { TeacherApi } from '../Api/TeacherApi';
-
-import { LocalStorageSync } from '../../../services/LocalStorageSync';
+import {
+  useTeachersList,
+  useCreateTeacher,
+  useUpdateTeacher,
+  useDeleteTeacher
+} from '../../../api/queries/useTeachersQuery';
+import { useUIFilters } from '../../../store';
 
 export function useTeacherList() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchQuery, setSearchQuery } = useUIFilters();
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [activeTab, setActiveTab] = useState('employee-list');
+
+  const { teachers, isLoading } = useTeachersList({
+    search: searchQuery,
+    department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
+  });
+
+  const createTeacherMutation = useCreateTeacher();
+  const updateTeacherMutation = useUpdateTeacher();
+  const deleteTeacherMutation = useDeleteTeacher();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
@@ -20,20 +31,6 @@ export function useTeacherList() {
   const [deleteCandidate, setDeleteCandidate] = useState<Teacher | null>(null);
 
   useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        setIsLoading(true);
-        const data = await TeacherApi.getTeachers();
-        setTeachers(data);
-      } catch (error) {
-        console.error("Failed to fetch teachers", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchTeachers();
-
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("action") === "add") {
@@ -44,20 +41,26 @@ export function useTeacherList() {
     }
   }, []);
 
-  // Save to Local Storage when teachers list changes
-  useEffect(() => {
-    if (!isLoading) {
-      LocalStorageSync.set("edu_trio_teachers", teachers);
-    }
-  }, [teachers, isLoading]);
+  const safeTeachers = useMemo(() => {
+    return Array.isArray(teachers) ? (teachers as Teacher[]) : [];
+  }, [teachers]);
 
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || teacher.department === selectedDepartment;
-    return matchesSearch && matchesDepartment;
-  });
+  const filteredTeachers = useMemo(() => {
+    return safeTeachers.filter(teacher => {
+      if (!teacher) return false;
+      const name = teacher.name || '';
+      const id = teacher.id || '';
+      const email = teacher.email || '';
+      const department = teacher.department || '';
+
+      const query = (searchQuery || '').toLowerCase();
+      const matchesSearch = name.toLowerCase().includes(query) ||
+        id.toLowerCase().includes(query) ||
+        email.toLowerCase().includes(query);
+      const matchesDepartment = selectedDepartment === 'all' || department === selectedDepartment;
+      return matchesSearch && matchesDepartment;
+    });
+  }, [safeTeachers, searchQuery, selectedDepartment]);
 
   const handleViewTeacher = (teacher: Teacher) => {
     setSelectedTeacher(teacher);
@@ -81,9 +84,9 @@ export function useTeacherList() {
 
   const handleFormSave = (teacherData: Teacher) => {
     if (editCandidate) {
-      setTeachers(teachers.map(t => t.id === teacherData.id ? teacherData : t));
+      updateTeacherMutation.mutate({ id: teacherData.id, updates: teacherData as any });
     } else {
-      setTeachers([...teachers, teacherData]);
+      createTeacherMutation.mutate(teacherData as any);
     }
     setIsFormOpen(false);
     setEditCandidate(null);
@@ -96,18 +99,18 @@ export function useTeacherList() {
 
   const handleDeleteConfirm = () => {
     if (deleteCandidate) {
-      setTeachers(teachers.filter(t => t.id !== deleteCandidate.id));
+      deleteTeacherMutation.mutate(deleteCandidate.id);
       setIsDeleteDialogOpen(false);
       setDeleteCandidate(null);
     }
   };
 
   return {
-    teachers,
+    teachers: safeTeachers,
     filteredTeachers,
     isLoading,
-    searchTerm,
-    setSearchTerm,
+    searchTerm: searchQuery,
+    setSearchTerm: setSearchQuery,
     selectedDepartment,
     setSelectedDepartment,
     activeTab,

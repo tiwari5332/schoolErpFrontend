@@ -2,6 +2,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { SidebarProvider } from "../components/ui/sidebar";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardHeader } from "./components/HeaderComponent";
+import { ToastContainer } from "../components/ui/Toast";
 
 const menuItems = [
   { id: 'overview', label: 'Dashboard' },
@@ -30,8 +31,8 @@ export function AdminLayout() {
 console.log("AdminLayout activeSection:", activeSection);
 
   // Authentication check
-  const authToken = localStorage.getItem('auth_token');
-  if (authToken !== 'dGl3YXJpNTMzMg==') {
+  const authToken = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+  if (!authToken) {
     return <Navigate to="/login" replace />;
   }
 
@@ -56,6 +57,7 @@ console.log("AdminLayout activeSection:", activeSection);
           </main>
         </div>
       </div>
+      <ToastContainer position="top-right" />
     </SidebarProvider>
   );
 }

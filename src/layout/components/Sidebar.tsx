@@ -29,6 +29,17 @@ const menuItems = [
   { id: 'admins', label: 'Administrators', icon: UserCheck, color: 'purple', path: '/admin-dashboard/admins' },
 ];
 
+const colorMap: Record<string, { text: string; gradient: string; shadow: string }> = {
+  indigo: { text: 'text-indigo-500', gradient: 'gradient-indigo', shadow: 'shadow-colored-indigo' },
+  fuchsia: { text: 'text-fuchsia-500', gradient: 'gradient-fuchsia', shadow: 'shadow-colored-fuchsia' },
+  cyan: { text: 'text-cyan-500', gradient: 'gradient-cyan', shadow: 'shadow-colored-cyan' },
+  emerald: { text: 'text-emerald-500', gradient: 'gradient-emerald', shadow: 'shadow-colored-emerald' },
+  rose: { text: 'text-rose-500', gradient: 'gradient-rose', shadow: 'shadow-colored-rose' },
+  blue: { text: 'text-blue-500', gradient: 'gradient-blue', shadow: 'shadow-colored-blue' },
+  amber: { text: 'text-amber-500', gradient: 'gradient-amber', shadow: 'shadow-colored-amber' },
+  purple: { text: 'text-purple-500', gradient: 'gradient-purple', shadow: 'shadow-colored-purple' },
+};
+
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,27 +69,30 @@ export function Sidebar() {
       </SidebarHeader>
       <SidebarContent className="px-4 py-6 bg-gradient-to-b from-white to-slate-50/50">
         <SidebarMenu className="space-y-3">
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                onClick={() => navigate(item.path)}
-                isActive={() => isActive(item.path)}
-                className={`w-full rounded-xl px-4 py-3.5 text-left transition-all duration-300 group hover:shadow-lg ${
-                  isActive(item.path)
-                    ? `gradient-${item.color} text-white shadow-colored-${item.color}`
-                    : 'hover:bg-slate-50 hover:scale-[1.02]'
-                }`}
-              >
-                <item.icon className={`h-5 w-5 ${
-                  isActive(item.path) ? 'text-white' : `text-${item.color}-500`
-                } group-hover:scale-110 transition-transform duration-200`} />
-                <span className="ml-3 font-medium">{item.label}</span>
-                {isActive(item.path) && (
-                  <div className="ml-auto h-2 w-2 rounded-full bg-white/30 animate-pulse-slow" />
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            const styles = colorMap[item.color] || colorMap.indigo;
+            return (
+              <SidebarMenuItem key={item.id}>
+                <SidebarMenuButton
+                  onClick={() => navigate(item.path)}
+                  isActive={isActive(item.path)}
+                  className={`w-full rounded-xl px-4 py-3.5 text-left transition-all duration-300 group hover:shadow-lg ${
+                    isActive(item.path)
+                      ? `${styles.gradient} text-white ${styles.shadow}`
+                      : 'hover:bg-slate-50 hover:scale-[1.02]'
+                  }`}
+                >
+                  <item.icon className={`h-5 w-5 ${
+                    isActive(item.path) ? 'text-white' : styles.text
+                  } group-hover:scale-110 transition-transform duration-200`} />
+                  <span className="ml-3 font-medium">{item.label}</span>
+                  {isActive(item.path) && (
+                    <div className="ml-auto h-2 w-2 rounded-full bg-white/30 animate-pulse-slow" />
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarContent>
 

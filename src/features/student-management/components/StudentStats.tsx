@@ -8,8 +8,9 @@ interface StudentStatsProps {
   gradesCount: number;
 }
 
-export function StudentStats({ students, gradesCount }: StudentStatsProps) {
-  const activeStudents = students.filter(s => s.status === 'Active').length;
+export function StudentStats({ students = [], gradesCount }: StudentStatsProps) {
+  const safeStudents = Array.isArray(students) ? students : [];
+  const activeStudents = safeStudents.filter(s => s && s.status === 'Active').length;
   // Mock new this month
   const newThisMonth = 12;
 
@@ -22,7 +23,7 @@ export function StudentStats({ students, gradesCount }: StudentStatsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-indigo-700">Total Students</p>
-              <p className="text-3xl font-bold text-indigo-900">{students.length}</p>
+              <p className="text-3xl font-bold text-indigo-900">{safeStudents.length}</p>
             </div>
             <div className="h-12 w-12 rounded-2xl gradient-indigo flex items-center justify-center shadow-colored-indigo">
               <UserPlus className="h-6 w-6 text-white" />

@@ -11,6 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Edit, Eye, Trash2, Shield, Key, UserCheck, UserPlus, Users } from "lucide-react";
 import { LocalStorageSync } from '../../../services/LocalStorageSync';
+import { useAdminsList, useCreateAdmin, useUpdateAdmin, useDeleteAdmin } from '../../../api/queries/useAdminsQuery';
+import { useUIFilters } from '../../../store';
 
 const roles = ['Super Admin', 'Academic Admin', 'Finance Admin', 'IT Admin', 'HR Admin'];
 const departments = ['Administration', 'Academics', 'Finance', 'IT', 'Human Resources'];
@@ -31,9 +33,17 @@ const allPermissions = [
 ];
 
 export function AdminList() {
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchQuery, setSearchQuery } = useUIFilters();
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+
+  const { admins, isLoading } = useAdminsList({
+    search: searchQuery,
+    department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
+  });
+
+  const createAdminMutation = useCreateAdmin();
+  const updateAdminMutation = useUpdateAdmin();
+  const deleteAdminMutation = useDeleteAdmin();
   
   // Modals/Dialogs state
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -56,16 +66,6 @@ export function AdminList() {
     permissions: [] as string[],
     status: 'Active'
   });
-
-  useEffect(() => {
-    const list = LocalStorageSync.get<any[]>("edu_trio_admins") || [];
-    setAdmins(list);
-  }, []);
-
-  const saveAdminsToStorage = (updatedList: any[]) => {
-    setAdmins(updatedList);
-    LocalStorageSync.set("edu_trio_admins", updatedList);
-  };
 
   const handlePermissionChange = (perm: string, checked: boolean) => {
     setFormData(prev => ({
@@ -96,37 +96,31 @@ export function AdminList() {
     }
     const newAdmin = {
       ...formData,
-      id: `ADM${String(admins.length + 1).padStart(3, '0')}`,
       lastLogin: 'Never',
       createdDate: new Date().toISOString().split('T')[0],
       avatar: ''
     };
-    const updated = [...admins, newAdmin];
-    saveAdminsToStorage(updated);
+    createAdminMutation.mutate(newAdmin as any);
     setIsAddDialogOpen(false);
   };
 
   const handleOpenEditDialog = (admin: any) => {
     setEditCandidate(admin);
     setFormData({
-      name: admin.name,
-      email: admin.email,
+      name: admin.name || '',
+      email: admin.email || '',
       phone: admin.phone || '',
-      role: admin.role,
-      department: admin.department,
+      role: admin.role || 'Academic Admin',
+      department: admin.department || 'Academics',
       permissions: admin.permissions || [],
-      status: admin.status
+      status: admin.status || 'Active'
     });
     setIsEditDialogOpen(true);
   };
 
   const handleEditSubmit = () => {
     if (!editCandidate) return;
-    const updated = admins.map(a => a.id === editCandidate.id ? {
-      ...a,
-      ...formData
-    } : a);
-    saveAdminsToStorage(updated);
+    updateAdminMutation.mutate({ id: editCandidate.id, updates: formData as any });
     setIsEditDialogOpen(false);
     setEditCandidate(null);
   };
@@ -138,8 +132,7 @@ export function AdminList() {
 
   const handleDeleteSubmit = () => {
     if (!deleteCandidate) return;
-    const updated = admins.filter(a => a.id !== deleteCandidate.id);
-    saveAdminsToStorage(updated);
+    deleteAdminMutation.mutate(deleteCandidate.id);
     setIsDeleteDialogOpen(false);
     setDeleteCandidate(null);
   };
@@ -149,11 +142,20 @@ export function AdminList() {
     setIsDetailDialogOpen(true);
   };
 
-  const filteredAdmins = admins.filter(admin => {
-    const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         admin.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         admin.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || admin.department === selectedDepartment;
+  const safeAdmins = Array.isArray(admins) ? admins : [];
+
+  const filteredAdmins = safeAdmins.filter(admin => {
+    if (!admin) return false;
+    const name = admin.name || '';
+    const id = admin.id || '';
+    const email = admin.email || '';
+    const department = admin.department || '';
+
+    const query = (searchQuery || '').toLowerCase();
+    const matchesSearch = name.toLowerCase().includes(query) ||
+                          id.toLowerCase().includes(query) ||
+                          email.toLowerCase().includes(query);
+    const matchesDepartment = selectedDepartment === 'all' || department === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
 
@@ -340,8 +342,8 @@ export function AdminList() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Search admins by name, ID, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-11 border-2 border-slate-200 focus:border-purple-300 focus:ring-purple-100 transition-all duration-200"
               />
             </div>

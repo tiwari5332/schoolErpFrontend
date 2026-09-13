@@ -12,13 +12,18 @@ interface StudentFeeTrackingProps {
   students: Student[];
 }
 
-export function StudentFeeTracking({ students }: StudentFeeTrackingProps) {
+export function StudentFeeTracking({ students = [] }: StudentFeeTrackingProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    student.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const safeStudents = Array.isArray(students) ? students : [];
+
+  const filteredStudents = safeStudents.filter(student => {
+    if (!student) return false;
+    const name = student.name || '';
+    const id = student.id || '';
+    const query = (searchTerm || '').toLowerCase();
+    return name.toLowerCase().includes(query) || id.toLowerCase().includes(query);
+  });
 
   // Mock function to generate fee details
   const getMockFeeDetails = (student: Student) => {
@@ -91,7 +96,7 @@ export function StudentFeeTracking({ students }: StudentFeeTrackingProps) {
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={student.avatar} />
                           <AvatarFallback className="gradient-emerald text-white font-medium text-xs">
-                            {student.name.split(' ').map(n => n[0]).join('')}
+                            {(student.name || 'S').split(' ').filter(Boolean).map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="space-y-0.5">

@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ROUTES from '../../../router/RouterConstant';
-import { AuthApi } from '../../../services/AuthApi';
+import authService from '../../../api/services/authService';
+import { getOrCreateDeviceId } from '../../../utils/deviceId';
+import { AUTH_TOKEN_KEY } from '../../../api/httpClient';
 
 export function useSignUp() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
@@ -19,6 +21,14 @@ export function useSignUp() {
     agreeToTerms: false
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Auto-redirect to admin dashboard if token is present
+  useEffect(() => {
+    const existingToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (existingToken) {
+      navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+    }
+  }, [navigate]);
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,7 +49,7 @@ export function useSignUp() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = 'Full name is required';
     }
 
     if (!formData.mobile.trim()) {
@@ -53,9 +63,9 @@ export function useSignUp() {
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Email address is required';
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
@@ -81,37 +91,56 @@ export function useSignUp() {
       setIsLoading(true);
       setErrors({});
 
-      // Check for duplicate email
-      const existingUsers = JSON.parse(localStorage.getItem('edu_trio_registered_users') || '[]');
-      const duplicate = existingUsers.find((u: any) => u.email === formData.email);
-      if (duplicate) {
-        setErrors({ email: 'An account with this email already exists' });
-        setIsLoading(false);
-        return;
+      const payload = {
+        fullName: formData.name.trim(),
+        mobileNo: formData.mobile.trim(),
+        schoolName: formData.schoolName.trim(),
+        emailAddress: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+
+      // 1. Register account
+      await authService.registerAdmin(payload);
+
+      // 2. Automatically log in after registration
+      const deviceId = getOrCreateDeviceId();
+      const loginResponse = await authService.loginAdmin({
+        msisdn: payload.mobileNo,
+        password: payload.password,
+        deviceId
+      });
+
+      const token = loginResponse?.token || loginResponse?.accessToken || loginResponse?.authToken || loginResponse?.data?.token;
+
+      if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+        const userObj = loginResponse?.user || loginResponse?.data?.user;
+        if (userObj) {
+          localStorage.setItem('user_info', JSON.stringify(userObj));
+        }
+        navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+      } else {
+        // If account registered but login response missed token, redirect to login with prompt
+        navigate(ROUTES.LOGIN);
+      }
+    } catch (err: any) {
+      const apiErrors = err.responseData?.fieldErrors;
+      const mappedErrors: { [key: string]: string } = {};
+
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        apiErrors.forEach((fe: { field: string; message: string }) => {
+          if (fe.field === 'emailAddress') mappedErrors.email = fe.message;
+          else if (fe.field === 'mobileNo') mappedErrors.mobile = fe.message;
+          else if (fe.field === 'fullName') mappedErrors.name = fe.message;
+          else if (fe.field === 'schoolName') mappedErrors.schoolName = fe.message;
+          else if (fe.field === 'password') mappedErrors.password = fe.message;
+          else if (fe.field === 'confirmPassword') mappedErrors.confirmPassword = fe.message;
+        });
       }
 
-      await AuthApi.signup(formData);
-
-      // Store registered user in localStorage so they can log in
-      const newUser = {
-        id: `USR${String(existingUsers.length + 1).padStart(3, '0')}`,
-        name: formData.name,
-        mobile: formData.mobile,
-        schoolName: formData.schoolName,
-        email: formData.email,
-        password: formData.password,
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-      };
-      existingUsers.push(newUser);
-      localStorage.setItem('edu_trio_registered_users', JSON.stringify(existingUsers));
-
-      // Success - navigate to login
-      navigate(ROUTES.LOGIN);
-    } catch (err: any) {
-      setErrors({
-        email: err.message || 'Registration failed'
-      });
+      mappedErrors.submit = err.message || 'Registration failed. Please check your details and try again.';
+      setErrors(mappedErrors);
     } finally {
       setIsLoading(false);
     }

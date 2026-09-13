@@ -1,40 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Student } from '../constant';
-import { StudentApi } from '../api/StudentApi';
-
-import { LocalStorageSync } from '../../../services/LocalStorageSync';
+import {
+  useStudentsList,
+  useCreateStudent,
+  useUpdateStudent,
+  useDeleteStudent
+} from '../../../api/queries/useStudentsQuery';
+import { useUIFilters } from '../../../store';
 
 export function useStudentManagement() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGrade, setSelectedGrade] = useState('all');
+  const { searchQuery, setSearchQuery, selectedGrade, setSelectedGrade } = useUIFilters();
   const [activeTab, setActiveTab] = useState('student-list');
-  
+
+  const { students, isLoading } = useStudentsList({
+    search: searchQuery,
+    grade: selectedGrade !== 'all' ? selectedGrade : undefined,
+  });
+
+  const createStudentMutation = useCreateStudent();
+  const updateStudentMutation = useUpdateStudent();
+  const deleteStudentMutation = useDeleteStudent();
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
+
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [editCandidate, setEditCandidate] = useState<Student | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<Student | null>(null);
   const [isDeletePermanently, setIsDeletePermanently] = useState(false);
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setIsLoading(true);
-        const data = await StudentApi.getStudents();
-        setStudents(data);
-      } catch (error) {
-        console.error("Failed to fetch students", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStudents();
-
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("action") === "add") {
@@ -45,20 +41,26 @@ export function useStudentManagement() {
     }
   }, []);
 
-  // Save to Local Storage when students list changes
-  useEffect(() => {
-    if (!isLoading) {
-      LocalStorageSync.set("edu_trio_students", students);
-    }
-  }, [students, isLoading]);
+  const safeStudents = useMemo(() => {
+    return Array.isArray(students) ? (students as Student[]) : [];
+  }, [students]);
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGrade = selectedGrade === 'all' || student.grade === selectedGrade;
-    return matchesSearch && matchesGrade;
-  });
+  const filteredStudents = useMemo(() => {
+    return safeStudents.filter(student => {
+      if (!student) return false;
+      const name = student.name || '';
+      const id = student.id || '';
+      const email = student.email || '';
+      const grade = student.grade || '';
+
+      const query = (searchQuery || '').toLowerCase();
+      const matchesSearch = name.toLowerCase().includes(query) ||
+        id.toLowerCase().includes(query) ||
+        email.toLowerCase().includes(query);
+      const matchesGrade = selectedGrade === 'all' || grade === selectedGrade;
+      return matchesSearch && matchesGrade;
+    });
+  }, [safeStudents, searchQuery, selectedGrade]);
 
   const handleViewStudent = (student: Student) => {
     setSelectedStudent(student);
@@ -82,9 +84,9 @@ export function useStudentManagement() {
 
   const handleFormSave = (studentData: Student) => {
     if (editCandidate) {
-      setStudents(students.map(s => s.id === studentData.id ? studentData : s));
+      updateStudentMutation.mutate({ id: studentData.id, updates: studentData as any });
     } else {
-      setStudents([...students, studentData]);
+      createStudentMutation.mutate(studentData as any);
     }
     setIsFormOpen(false);
     setEditCandidate(null);
@@ -98,18 +100,18 @@ export function useStudentManagement() {
 
   const handleDeleteConfirm = () => {
     if (deleteCandidate) {
-      setStudents(students.filter(s => s.id !== deleteCandidate.id));
+      deleteStudentMutation.mutate(deleteCandidate.id);
       setIsDeleteDialogOpen(false);
       setDeleteCandidate(null);
     }
   };
 
   return {
-    students,
+    students: safeStudents,
     filteredStudents,
     isLoading,
-    searchTerm,
-    setSearchTerm,
+    searchTerm: searchQuery,
+    setSearchTerm: setSearchQuery,
     selectedGrade,
     setSelectedGrade,
     activeTab,

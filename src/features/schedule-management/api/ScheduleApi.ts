@@ -8,6 +8,7 @@ import {
   DEFAULT_TIME_SLOTS
 } from '../Constants';
 import { LocalStorageSync } from '../../../services/LocalStorageSync';
+import teacherService from '../../../api/services/teacherService';
 
 const USE_MOCK = true;
 
@@ -49,16 +50,16 @@ export const ScheduleApi = {
   },
 
   getTeachers: async (): Promise<Teacher[]> => {
-    if (USE_MOCK) {
-      await delay(300);
-      const data = LocalStorageSync.get<any[]>("edu_trio_teachers") || [];
+    try {
+      const data = await teacherService.getTeachers();
       return data.map(t => ({
         id: t.id,
         name: t.name,
         subjectSpecialty: (t.subjects && t.subjects.length > 0) ? t.subjects[0] : (t.department || 'General')
       }));
+    } catch {
+      return [];
     }
-    return await ApiService.get<Teacher[]>('/schedule/teachers');
   },
 
   getClasses: async (): Promise<ClassSection[]> => {

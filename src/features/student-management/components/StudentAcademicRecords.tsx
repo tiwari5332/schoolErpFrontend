@@ -21,16 +21,21 @@ interface StudentAcademicRecordsProps {
   students: Student[];
 }
 
-export function StudentAcademicRecords({ students }: StudentAcademicRecordsProps) {
+export function StudentAcademicRecords({ students = [] }: StudentAcademicRecordsProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedGrades, setSelectedGrades] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    student.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const safeStudents = Array.isArray(students) ? students : [];
+
+  const filteredStudents = safeStudents.filter(student => {
+    if (!student) return false;
+    const name = student.name || '';
+    const id = student.id || '';
+    const query = (searchTerm || '').toLowerCase();
+    return name.toLowerCase().includes(query) || id.toLowerCase().includes(query);
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -107,7 +112,7 @@ export function StudentAcademicRecords({ students }: StudentAcademicRecordsProps
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={student.avatar} />
                           <AvatarFallback className="gradient-blue text-white font-medium text-xs">
-                            {student.name.split(' ').map(n => n[0]).join('')}
+                            {(student.name || 'S').split(' ').filter(Boolean).map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="space-y-0.5">

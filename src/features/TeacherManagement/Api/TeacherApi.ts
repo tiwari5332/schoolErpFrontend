@@ -1,6 +1,6 @@
-import ApiService, { delay } from '../../../services/ApiService';
+import ApiService from '../../../services/ApiService';
+import teacherService from '../../../api/services/teacherService';
 import { 
-  INITIAL_TEACHERS,
   Teacher,
   TeacherPerformance,
   TeacherSchedule,
@@ -9,33 +9,21 @@ import {
   TeacherDocument
 } from '../Constants';
 
-import { LocalStorageSync } from '../../../services/LocalStorageSync';
-
-const USE_MOCK = true;
-
 export const TeacherApi = {
   getTeachers: async (): Promise<Teacher[]> => {
-    if (USE_MOCK) {
-      await delay(200);
-      const teachers = LocalStorageSync.get<Teacher[]>("edu_trio_teachers");
-      return teachers || [];
-    }
-    return await ApiService.get<Teacher[]>('/teachers');
+    const list = await teacherService.getTeachers();
+    return list as any[];
   },
 
   getTeacherById: async (id: string): Promise<Teacher | undefined> => {
-    if (USE_MOCK) {
-      await delay(100);
-      const teachers = LocalStorageSync.get<Teacher[]>("edu_trio_teachers");
-      return teachers?.find(t => t.id === id);
-    }
-    return await ApiService.get<Teacher>(`/teachers/${id}`);
+    const teacher = await teacherService.getTeacherById(id);
+    return teacher as any;
   },
 
   getPerformanceData: async (teacherId: string): Promise<TeacherPerformance | null> => {
-    if (USE_MOCK) {
-      await delay(400);
-      // Dummy data response since performance data wasn't explicitly structured in Constants yet
+    try {
+      return await ApiService.get<TeacherPerformance>(`/teachers/${teacherId}/performance`);
+    } catch {
       return {
         id: teacherId,
         rating: 4.8,
@@ -44,38 +32,39 @@ export const TeacherApi = {
         courseCompletion: 95
       };
     }
-    return await ApiService.get<TeacherPerformance>(`/teachers/${teacherId}/performance`);
   },
 
   getSchedule: async (teacherId: string): Promise<TeacherSchedule[]> => {
-    if (USE_MOCK) {
-      await delay(400);
+    try {
+      return await ApiService.get<TeacherSchedule[]>(`/teachers/${teacherId}/schedule`);
+    } catch {
       return [];
     }
-    return await ApiService.get<TeacherSchedule[]>(`/teachers/${teacherId}/schedule`);
   },
 
   getActivities: async (teacherId: string): Promise<TeacherActivity[]> => {
-    if (USE_MOCK) {
-      await delay(400);
+    try {
+      return await ApiService.get<TeacherActivity[]>(`/teachers/${teacherId}/activities`);
+    } catch {
       return [];
     }
-    return await ApiService.get<TeacherActivity[]>(`/teachers/${teacherId}/activities`);
   },
 
   getAchievements: async (teacherId: string): Promise<TeacherAchievement[]> => {
-    if (USE_MOCK) {
-      await delay(400);
+    try {
+      return await ApiService.get<TeacherAchievement[]>(`/teachers/${teacherId}/achievements`);
+    } catch {
       return [];
     }
-    return await ApiService.get<TeacherAchievement[]>(`/teachers/${teacherId}/achievements`);
   },
 
   getDocuments: async (teacherId: string): Promise<TeacherDocument[]> => {
-    if (USE_MOCK) {
-      await delay(500);
+    try {
+      return await ApiService.get<TeacherDocument[]>(`/teachers/${teacherId}/documents`);
+    } catch {
       return [];
     }
-    return await ApiService.get<TeacherDocument[]>(`/teachers/${teacherId}/documents`);
   }
 };
+
+export default TeacherApi;

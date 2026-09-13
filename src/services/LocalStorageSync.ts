@@ -234,39 +234,8 @@ export const LocalStorageSync = {
   init: () => {
     if (typeof window === "undefined") return;
 
-    // Validate and heal teachers
-    const storedTeachersRaw = localStorage.getItem("edu_trio_teachers");
-    if (!storedTeachersRaw) {
-      localStorage.setItem("edu_trio_teachers", JSON.stringify(INITIAL_TEACHERS_SEED));
-    } else {
-      try {
-        const storedTeachers = JSON.parse(storedTeachersRaw);
-        if (Array.isArray(storedTeachers)) {
-          const needsHealing = storedTeachers.some((t: any) => !t.subjects || !Array.isArray(t.subjects) || !t.email);
-          if (needsHealing) {
-            const healed = storedTeachers.map((t: any) => {
-              const seed = INITIAL_TEACHERS_SEED.find((s: any) => s.id === t.id);
-              return {
-                ...INITIAL_TEACHERS_SEED[0],
-                ...seed,
-                ...t,
-                subjects: t.subjects || seed?.subjects || [],
-                classes: t.classes || seed?.classes || [],
-                experience: t.experience || seed?.experience || '1 year',
-                qualification: t.qualification || seed?.qualification || '',
-                status: t.status || seed?.status || 'Active',
-                joinDate: t.joinDate || seed?.joinDate || '2024-01-01',
-                address: t.address || seed?.address || '',
-                avatar: t.avatar || seed?.avatar || '',
-              };
-            });
-            localStorage.setItem("edu_trio_teachers", JSON.stringify(healed));
-          }
-        }
-      } catch (e) {
-        localStorage.setItem("edu_trio_teachers", JSON.stringify(INITIAL_TEACHERS_SEED));
-      }
-    }
+    // Remove legacy teacher storage key so localStorage is never used for teachers
+    localStorage.removeItem("edu_trio_teachers");
 
     // Validate and heal students
     const storedStudentsRaw = localStorage.getItem("edu_trio_students");

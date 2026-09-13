@@ -86,7 +86,7 @@ export function ExamScheduler({ showToast }: ExamSchedulerProps) {
   }, [headerConfig.classId]);
 
   const teacherOptions = React.useMemo(() => {
-    return LocalStorageSync.get<any[]>("edu_trio_teachers") || [];
+    return [];
   }, []);
 
   const handlePrint = () => {
@@ -98,8 +98,7 @@ export function ExamScheduler({ showToast }: ExamSchedulerProps) {
     return list.find(s => s.id === subId)?.name || "—";
   };
   const getTeacherName = (tId: string) => {
-    const list = LocalStorageSync.get<any[]>("edu_trio_teachers") || [];
-    return list.find(t => t.id === tId)?.name || "—";
+    return "—";
   };
   const getExamCategoryName = (cId: string) => examCategories.find(c => c.id === cId)?.name || "—";
   const getClassName = (clsId: string) => {

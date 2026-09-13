@@ -1,39 +1,25 @@
-import ApiService, { delay } from './ApiService';
-
-const USE_MOCK = true;
+import ApiService from './ApiService';
+import authService from '../api/services/authService';
+import { getOrCreateDeviceId } from '../utils/deviceId';
 
 export class AuthApi {
-  static async login(email: string, password: string):Promise<any> {
-    if (USE_MOCK) {
-      await delay(800);
-      const encodedId = btoa(email);
-      const encodedPass = btoa(password);
-
-      if (encodedId === 'dGl3YXJpNTMzMg==' && encodedPass === 'QXNkMTIzNTY3OTBA') {
-        return {
-          token: 'dGl3YXJpNTMzMg==',
-          user: { name: 'Admin User', email: 'admin@schoolerp.com', role: 'admin' }
-        };
-      } else {
-        throw new Error('Invalid ID or Password');
-      }
-    }
-    return ApiService.post('/auth/login', { email, password });
+  static async login(msisdn: string, password: string): Promise<any> {
+    const deviceId = getOrCreateDeviceId();
+    return authService.loginAdmin({ msisdn, password, deviceId });
   }
 
-  static async signup(userData: any):Promise<any> {
-    if (USE_MOCK) {
-      await delay(1000);
-      return { success: true, message: "User registered successfully" };
-    }
-    return ApiService.post('/auth/signup', userData);
+  static async signup(userData: any): Promise<any> {
+    return authService.registerAdmin({
+      fullName: userData.name || userData.fullName,
+      mobileNo: userData.mobile || userData.mobileNo,
+      schoolName: userData.schoolName,
+      emailAddress: userData.email || userData.emailAddress,
+      password: userData.password,
+      confirmPassword: userData.confirmPassword || userData.password,
+    });
   }
 
-  static async forgotPassword(email: string):Promise<any> {
-    if (USE_MOCK) {
-      await delay(800);
-      return { success: true, message: "Reset link sent to your email" };
-    }
+  static async forgotPassword(email: string): Promise<any> {
     return ApiService.post('/auth/forgot-password', { email });
   }
 }

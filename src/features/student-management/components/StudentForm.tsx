@@ -88,7 +88,8 @@ export function StudentForm({ student, onClose, onSave }: StudentFormProps) {
       status: formData.status,
       admissionDate: formData.dateOfAdmission,
       guardian: formData.guardianName,
-      avatar: profileImage
+      avatar: profileImage,
+      feeStatus: student?.feeStatus || 'Pending',
     };
 
     onSave(submittedStudent);

@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { FeeRecord } from '../Constants';
-import { FeeApi } from '../api/FeeApi';
+import { useFeesList } from '../../../api/queries/useFeesQuery';
+import { useUIFilters } from '../../../store';
 import { LocalStorageSync } from '../../../services/LocalStorageSync';
 
 export function useFeeManagement() {
-  const [records, setRecords] = useState<FeeRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchQuery, setSearchQuery } = useUIFilters();
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
+  
+  const { fees, isLoading } = useFeesList();
   
   const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
@@ -18,31 +19,24 @@ export function useFeeManagement() {
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchFees = async () => {
-      try {
-        setIsLoading(true);
-        const data = await FeeApi.getFees();
-        setRecords(data);
-      } catch (error) {
-        console.error("Failed to fetch fees", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchFees();
-  }, []);
+  const safeFees = useMemo(() => Array.isArray(fees) ? (fees as FeeRecord[]) : [], [fees]);
 
-  const filteredRecords = records.filter(record => {
-    const matchesSearch = record.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.studentId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
-    const matchesClass = selectedClass === 'all' || record.className === `${selectedClass}`;
-    const matchesMonth = selectedMonth === 'all' || new Date(record.dueDate).getMonth() + 1 === parseInt(selectedMonth);
-    
-    return matchesSearch && matchesStatus && matchesClass && matchesMonth;
-  });
+  const filteredRecords = useMemo(() => {
+    return safeFees.filter(record => {
+      if (!record) return false;
+      const studentName = record.studentName || '';
+      const studentId = record.studentId || '';
+      const query = (searchQuery || '').toLowerCase();
+
+      const matchesSearch = studentName.toLowerCase().includes(query) ||
+                           studentId.toLowerCase().includes(query);
+      const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
+      const matchesClass = selectedClass === 'all' || record.className === `${selectedClass}`;
+      const matchesMonth = selectedMonth === 'all' || (record.dueDate ? new Date(record.dueDate).getMonth() + 1 === parseInt(selectedMonth) : false);
+      
+      return matchesSearch && matchesStatus && matchesClass && matchesMonth;
+    });
+  }, [safeFees, searchQuery, selectedStatus, selectedClass, selectedMonth]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -74,13 +68,11 @@ export function useFeeManagement() {
   };
 
   const handleSendReminder = (record: FeeRecord) => {
-    // In a real app, this would dispatch an API call
     alert(`Reminder sent successfully to ${record.studentName}'s parents via Email and SMS.`);
   };
 
   const handleSavePayment = async (updatedRecord: FeeRecord) => {
-    const updated = records.map(r => r.id === updatedRecord.id ? updatedRecord : r);
-    setRecords(updated);
+    const updated = (fees as FeeRecord[]).map(r => r.id === updatedRecord.id ? updatedRecord : r);
     LocalStorageSync.set("edu_trio_fees", updated);
 
     // Sync student status in edu_trio_students
@@ -96,11 +88,11 @@ export function useFeeManagement() {
   };
 
   return {
-    records,
+    records: safeFees,
     filteredRecords,
     isLoading,
-    searchTerm,
-    setSearchTerm,
+    searchTerm: searchQuery,
+    setSearchTerm: setSearchQuery,
     selectedStatus,
     setSelectedStatus,
     selectedClass,

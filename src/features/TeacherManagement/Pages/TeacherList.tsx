@@ -1,4 +1,4 @@
-import React from 'react';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -152,7 +152,7 @@ export function TeacherList() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
         </div>
       ) : (
-        <>
+        <ErrorBoundary title="Error loading tab contents">
           {activeTab === 'employee-list' && (
             <>
               <TeacherFilters
@@ -190,7 +190,7 @@ export function TeacherList() {
           {activeTab === 'calendar' && (
             <EmployeeCalendar teachers={teachers} />
           )}
-        </>
+        </ErrorBoundary>
       )}
 
       {/* Delete Confirmation Dialog */}

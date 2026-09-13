@@ -1,8 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Award } from "lucide-react";
-import { ACHIEVEMENTS } from '../../Constants';
 
 export function TeacherAchievementsTab() {
   return (
@@ -13,32 +11,14 @@ export function TeacherAchievementsTab() {
         </CardTitle>
         <CardDescription>Awards, certifications, and recognitions</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {ACHIEVEMENTS.map((achievement, index) => (
-          <div key={index} className="p-4 rounded-xl border bg-gradient-to-r from-amber-50/50 to-orange-50/50 border-amber-100 hover:shadow-lg transition-all duration-200">
-            <div className="flex items-start gap-4">
-              <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                achievement.type === 'award' ? 'gradient-amber' :
-                achievement.type === 'certification' ? 'gradient-indigo' :
-                'gradient-emerald'
-              }`}>
-                <Award className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-slate-900 mb-1">{achievement.title}</h4>
-                <p className="text-sm text-slate-600 mb-2">{achievement.description}</p>
-                <p className="text-xs text-slate-500">{new Date(achievement.date).toLocaleDateString()}</p>
-              </div>
-              <Badge className={`${
-                achievement.type === 'award' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                achievement.type === 'certification' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
-                'bg-emerald-100 text-emerald-800 border-emerald-200'
-              }`}>
-                {achievement.type}
-              </Badge>
-            </div>
-          </div>
-        ))}
+      <CardContent className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+        <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+          <Award className="h-6 w-6" />
+        </div>
+        <h4 className="text-sm font-semibold text-slate-700">No Achievements Recorded</h4>
+        <p className="text-xs text-slate-500 max-w-xs">
+          Certifications and awards added to this teacher's profile will be listed here.
+        </p>
       </CardContent>
     </Card>
   );

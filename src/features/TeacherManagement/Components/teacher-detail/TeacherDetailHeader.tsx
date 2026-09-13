@@ -12,6 +12,32 @@ interface TeacherDetailHeaderProps {
 }
 
 export function TeacherDetailHeader({ teacher, onClose }: TeacherDetailHeaderProps) {
+  const teacherName = teacher?.name || (teacher as any)?.fullName || 'Teacher';
+  const initials = teacherName
+    .split(' ')
+    .filter(Boolean)
+    .map(n => n[0])
+    .join('')
+    .toUpperCase() || 'T';
+
+  const department = teacher?.department || 'General';
+  const status = teacher?.status || 'Active';
+  const experience = teacher?.experience || 'N/A';
+  const qualification = teacher?.qualification || 'N/A';
+  const email = teacher?.email || 'N/A';
+  const phone = teacher?.phone || (teacher as any)?.loginMsisdn || 'N/A';
+  const address = teacher?.address || 'N/A';
+  
+  let formattedJoinDate = 'N/A';
+  if (teacher?.joinDate) {
+    const d = new Date(teacher.joinDate);
+    if (!isNaN(d.getTime())) {
+      formattedJoinDate = d.toLocaleDateString();
+    } else {
+      formattedJoinDate = String(teacher.joinDate);
+    }
+  }
+
   return (
     <Card className="relative overflow-hidden border-0 shadow-xl hover-lift glass-card">
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/50 to-cyan-50/50"></div>
@@ -20,41 +46,41 @@ export function TeacherDetailHeader({ teacher, onClose }: TeacherDetailHeaderPro
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24 ring-4 ring-emerald-100">
-              <AvatarImage src={teacher.avatar} />
+              <AvatarImage src={teacher?.avatar} />
               <AvatarFallback className="gradient-emerald text-white text-2xl font-medium">
-                {teacher.name.split(' ').map(n => n[0]).join('')}
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 to-cyan-700 bg-clip-text text-transparent mb-2">
-                {teacher.name}
+                {teacherName}
               </h2>
               <div className="flex items-center gap-4 mb-3">
                 <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 gap-1 px-3 py-1.5">
                   <BookOpen className="h-3 w-3" />
-                  {teacher.department}
+                  {department}
                 </Badge>
                 <Badge className="bg-cyan-100 text-cyan-800 border-cyan-200 gap-1 px-3 py-1.5">
                   <CheckCircle className="h-3 w-3" />
-                  {teacher.status}
+                  {status}
                 </Badge>
                 <Badge className="bg-purple-100 text-purple-800 border-purple-200 gap-1 px-3 py-1.5">
                   <GraduationCap className="h-3 w-3" />
-                  {teacher.experience}
+                  {experience}
                 </Badge>
               </div>
               <div className="text-sm text-slate-600 space-y-1">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-slate-400" />
-                  <span>Teacher ID: {teacher.id}</span>
+                  <span>Teacher ID: {teacher?.id || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-400" />
-                  <span>Joined: {new Date(teacher.joinDate).toLocaleDateString()}</span>
+                  <span>Joined: {formattedJoinDate}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-slate-400" />
-                  <span>{teacher.qualification}</span>
+                  <span>{qualification}</span>
                 </div>
               </div>
             </div>
@@ -72,7 +98,7 @@ export function TeacherDetailHeader({ teacher, onClose }: TeacherDetailHeaderPro
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wide">Email</p>
-              <p className="font-medium text-slate-900">{teacher.email}</p>
+              <p className="font-medium text-slate-900">{email}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50/50 border border-slate-200">
@@ -81,7 +107,7 @@ export function TeacherDetailHeader({ teacher, onClose }: TeacherDetailHeaderPro
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wide">Phone</p>
-              <p className="font-medium text-slate-900">{teacher.phone}</p>
+              <p className="font-medium text-slate-900">{phone}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50/50 border border-slate-200">
@@ -90,7 +116,7 @@ export function TeacherDetailHeader({ teacher, onClose }: TeacherDetailHeaderPro
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wide">Address</p>
-              <p className="font-medium text-slate-900 text-sm">{teacher.address}</p>
+              <p className="font-medium text-slate-900 text-sm">{address}</p>
             </div>
           </div>
         </div>

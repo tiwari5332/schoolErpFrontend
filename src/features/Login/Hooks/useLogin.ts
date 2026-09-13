@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ROUTES from '../../../router/RouterConstant';
-import { AuthApi } from '../../../services/AuthApi';
+import authService from '../../../api/services/authService';
+import { getOrCreateDeviceId } from '../../../utils/deviceId';
+import { AUTH_TOKEN_KEY } from '../../../api/httpClient';
 
 export function useLogin() {
   const navigate = useNavigate();
@@ -9,28 +11,33 @@ export function useLogin() {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: '', // Serves as MSISDN / Mobile / Admin ID
     password: '',
     confirmPassword: '',
     rememberMe: false,
     agreeToTerms: false
   });
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
+  // Auto-redirect to admin dashboard if token exists
+  useEffect(() => {
+    const existingToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (existingToken) {
+      navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'ID / Email is required';
+    const identifier = formData.email.trim();
+    if (!identifier) {
+      newErrors.email = 'Mobile number / ID is required';
     }
 
     if (!formData.password) {
@@ -46,42 +53,34 @@ export function useLogin() {
       setIsLoading(true);
       setErrors({});
 
-      // First try the hardcoded admin login via AuthApi
-      let response: any = null;
-      let loginSuccess = false;
+      const deviceId = getOrCreateDeviceId();
 
-      try {
-        response = await AuthApi.login(formData.email, formData.password);
-        loginSuccess = true;
-      } catch {
-        // Hardcoded admin login failed — check localStorage registered users
-        const registeredUsers = JSON.parse(localStorage.getItem('edu_trio_registered_users') || '[]');
-        const matchedUser = registeredUsers.find(
-          (u: any) => u.email === formData.email && u.password === formData.password
-        );
+      const response = await authService.loginAdmin({
+        msisdn: identifier,
+        password: formData.password,
+        deviceId
+      });
 
-        if (matchedUser) {
-          response = {
-            token: btoa(matchedUser.email),
-            user: { name: matchedUser.name, email: matchedUser.email, role: matchedUser.role }
-          };
-          loginSuccess = true;
+      const token = response?.token || response?.accessToken || response?.authToken || response?.data?.token;
+
+      if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+
+        const userObj = response?.user || response?.data?.user;
+        if (userObj) {
+          localStorage.setItem('user_info', JSON.stringify(userObj));
         }
-      }
 
-      if (loginSuccess && response) {
-        localStorage.setItem('auth_token', response.token);
-        navigate(ROUTES.ADMIN_DASHBOARD);
+        navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
       } else {
         setErrors({
-          email: 'Invalid ID or Password',
-          password: 'Invalid ID or Password'
+          submit: response?.message || 'Login failed. Invalid Mobile number / MSISDN or Password.'
         });
       }
     } catch (err: any) {
+      const displayMsg = err.message || 'Invalid Mobile number / MSISDN or Password';
       setErrors({
-        email: err.message || 'Invalid ID or Password',
-        password: err.message || 'Invalid ID or Password'
+        submit: displayMsg
       });
     } finally {
       setIsLoading(false);

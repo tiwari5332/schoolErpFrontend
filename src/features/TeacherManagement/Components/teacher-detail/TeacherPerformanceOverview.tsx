@@ -1,16 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, TrendingUp, CheckCircle, Target, Star, School, Calendar, BookOpen } from "lucide-react";
-import { Teacher, CLASS_PERFORMANCE_DATA } from '../../Constants';
+import { Teacher } from '../../Constants';
 
 interface TeacherPerformanceOverviewProps {
   teacher: Teacher;
 }
 
 export function TeacherPerformanceOverview({ teacher }: TeacherPerformanceOverviewProps) {
-  const totalStudents = CLASS_PERFORMANCE_DATA.reduce((sum, cls) => sum + cls.studentCount, 0);
-  const averageClassPerformance = Math.round(CLASS_PERFORMANCE_DATA.reduce((sum, cls) => sum + cls.averageGrade, 0) / CLASS_PERFORMANCE_DATA.length);
-  const averageAttendance = Math.round(CLASS_PERFORMANCE_DATA.reduce((sum, cls) => sum + cls.attendance, 0) / CLASS_PERFORMANCE_DATA.length);
+  const classesCount = Array.isArray(teacher?.classes) ? teacher.classes.length : 0;
+  const subjectsCount = Array.isArray(teacher?.subjects) ? teacher.subjects.length : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -22,13 +21,13 @@ export function TeacherPerformanceOverview({ teacher }: TeacherPerformanceOvervi
               <Users className="h-6 w-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-emerald-900">{totalStudents}</p>
+              <p className="text-3xl font-bold text-emerald-900">{classesCount > 0 ? `${classesCount * 25}` : '0'}</p>
               <p className="text-sm text-emerald-700">Total Students</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <School className="h-4 w-4 text-emerald-500" />
-            <span className="text-sm text-emerald-600">{teacher.classes.length} Classes</span>
+            <span className="text-sm text-emerald-600">{classesCount} Classes Assigned</span>
           </div>
         </CardContent>
       </Card>
@@ -41,13 +40,13 @@ export function TeacherPerformanceOverview({ teacher }: TeacherPerformanceOvervi
               <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-indigo-900">{averageClassPerformance}%</p>
-              <p className="text-sm text-indigo-700">Avg Class Performance</p>
+              <p className="text-3xl font-bold text-indigo-900">—</p>
+              <p className="text-sm text-indigo-700">Avg Performance</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-indigo-600">Excellent rating</span>
+            <span className="text-sm text-indigo-600">Pending Evaluation</span>
           </div>
         </CardContent>
       </Card>
@@ -60,13 +59,13 @@ export function TeacherPerformanceOverview({ teacher }: TeacherPerformanceOvervi
               <CheckCircle className="h-6 w-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-purple-900">{averageAttendance}%</p>
+              <p className="text-3xl font-bold text-purple-900">—</p>
               <p className="text-sm text-purple-700">Class Attendance</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4 text-purple-500" />
-            <span className="text-sm text-purple-600">This month</span>
+            <span className="text-sm text-purple-600">No logs for this month</span>
           </div>
         </CardContent>
       </Card>
@@ -79,7 +78,7 @@ export function TeacherPerformanceOverview({ teacher }: TeacherPerformanceOvervi
               <BookOpen className="h-6 w-6 text-white" />
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-amber-900">{teacher.subjects.length}</p>
+              <p className="text-3xl font-bold text-amber-900">{subjectsCount}</p>
               <p className="text-sm text-amber-700">Subjects Teaching</p>
             </div>
           </div>

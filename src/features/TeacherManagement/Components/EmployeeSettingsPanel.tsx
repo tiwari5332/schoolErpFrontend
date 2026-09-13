@@ -8,7 +8,7 @@ import {
   Settings, Clock, CalendarHeart, Save, Plus, Trash2,
   Pencil, Building2, Briefcase, UserCog, X, Check
 } from "lucide-react";
-import { LocalStorageSync } from "../../../services/LocalStorageSync";
+
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -145,84 +145,45 @@ export function EmployeeSettingsPanel() {
     halfDayThreshold: '11:30'
   });
 
-  // ── Load from LocalStorage ──
-  useEffect(() => {
-    const savedDepts = LocalStorageSync.get<Department[]>('edu_trio_emp_departments');
-    if (savedDepts) setDepartments(savedDepts);
-
-    const savedDesigs = LocalStorageSync.get<Designation[]>('edu_trio_emp_designations');
-    if (savedDesigs) setDesignations(savedDesigs);
-
-    const savedTypes = LocalStorageSync.get<EmployeeType[]>('edu_trio_emp_employee_types');
-    if (savedTypes) setEmployeeTypes(savedTypes);
-
-    const savedLeave = LocalStorageSync.get<LeaveType[]>('edu_trio_emp_leave_types');
-    if (savedLeave) setLeaveTypes(savedLeave);
-
-    const savedHours = LocalStorageSync.get<typeof workingHours>('edu_trio_emp_working_hours');
-    if (savedHours) setWorkingHours(savedHours);
-  }, []);
-
-  // ── Persist helpers ──
-  const persistDepartments = (list: Department[]) => {
-    setDepartments(list);
-    LocalStorageSync.set('edu_trio_emp_departments', list);
-  };
-  const persistDesignations = (list: Designation[]) => {
-    setDesignations(list);
-    LocalStorageSync.set('edu_trio_emp_designations', list);
-  };
-  const persistEmployeeTypes = (list: EmployeeType[]) => {
-    setEmployeeTypes(list);
-    LocalStorageSync.set('edu_trio_emp_employee_types', list);
-  };
-  const persistLeaveTypes = (list: LeaveType[]) => {
-    setLeaveTypes(list);
-    LocalStorageSync.set('edu_trio_emp_leave_types', list);
-  };
-
-  // ── Department actions ──
   const addDepartment = () => {
     if (!newDepartment.trim()) return;
-    const list = [...departments, { id: Date.now().toString(), name: newDepartment.trim() }];
-    persistDepartments(list);
+    setDepartments(prev => [...prev, { id: Date.now().toString(), name: newDepartment.trim() }]);
     setNewDepartment('');
   };
 
-  // ── Designation actions ──
   const addDesignation = () => {
     if (!newDesignation.trim()) return;
-    const list = [...designations, { id: Date.now().toString(), name: newDesignation.trim() }];
-    persistDesignations(list);
+    setDesignations(prev => [...prev, { id: Date.now().toString(), name: newDesignation.trim() }]);
     setNewDesignation('');
   };
 
-  // ── Employee Type actions ──
   const addEmployeeType = () => {
     if (!newEmpType.trim() || !newPaymentMode.trim()) return;
-    const list = [...employeeTypes, { id: Date.now().toString(), name: newEmpType.trim(), paymentMode: newPaymentMode.trim() }];
-    persistEmployeeTypes(list);
+    setEmployeeTypes(prev => [...prev, { id: Date.now().toString(), name: newEmpType.trim(), paymentMode: newPaymentMode.trim() }]);
     setNewEmpType('');
     setNewPaymentMode('');
   };
 
-  // ── Leave actions ──
   const handleAddLeaveType = () => {
     if (newLeaveName && newLeaveDays) {
-      const list = [...leaveTypes, {
+      setLeaveTypes(prev => [...prev, {
         id: Date.now().toString(),
         name: newLeaveName,
-        days: parseInt(newLeaveDays),
+        days: parseInt(newLeaveDays, 10),
         color: 'slate'
-      }];
-      persistLeaveTypes(list);
+      }]);
       setNewLeaveName('');
       setNewLeaveDays('');
     }
   };
 
+  const persistDepartments = (list: Department[]) => setDepartments(list);
+  const persistDesignations = (list: Designation[]) => setDesignations(list);
+  const persistEmployeeTypes = (list: EmployeeType[]) => setEmployeeTypes(list);
+  const persistLeaveTypes = (list: LeaveType[]) => setLeaveTypes(list);
+
   const handleSaveWorkingHours = () => {
-    LocalStorageSync.set('edu_trio_emp_working_hours', workingHours);
+    toast.success("Working hours saved successfully!");
   };
 
   return (

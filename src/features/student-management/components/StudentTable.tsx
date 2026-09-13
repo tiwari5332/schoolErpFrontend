@@ -22,14 +22,15 @@ interface StudentTableProps {
   onDeleteStudent: (student: Student) => void;
 }
 
-export function StudentTable({ students, onViewStudent, onEditStudent, onDeleteStudent }: StudentTableProps) {
+export function StudentTable({ students = [], onViewStudent, onEditStudent, onDeleteStudent }: StudentTableProps) {
+  const safeStudents = Array.isArray(students) ? students : [];
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const totalPages = Math.ceil(students.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(safeStudents.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, students.length);
-  const paginatedStudents = students.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, safeStudents.length);
+  const paginatedStudents = safeStudents.slice(startIndex, endIndex);
 
   return (
     <Card className="border-0 shadow-xl hover-lift glass-card">
@@ -37,7 +38,7 @@ export function StudentTable({ students, onViewStudent, onEditStudent, onDeleteS
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Students ({students.length})
+              Students ({safeStudents.length})
             </CardTitle>
             <CardDescription className="text-sm text-slate-500">Complete list of enrolled students</CardDescription>
           </div>
@@ -62,23 +63,27 @@ export function StudentTable({ students, onViewStudent, onEditStudent, onDeleteS
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedStudents.map((student) => (
-                <TableRow key={student.id} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="pl-6">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9 ring-1 ring-slate-200">
-                        <AvatarImage src={student.avatar} />
-                        <AvatarFallback className="gradient-indigo text-white font-medium text-xs">
-                          {student.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-0.5">
-                        <div className="font-medium text-slate-900">{student.name}</div>
-                        <div className="text-xs text-slate-500">{student.id}</div>
-                        <div className="text-xs text-slate-500">{student.email}</div>
+              {paginatedStudents.map((student, idx) => {
+                const name = student?.name || 'Unknown Student';
+                const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase() || 'S';
+
+                return (
+                  <TableRow key={student.id || `stu-${idx}`} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 ring-1 ring-slate-200">
+                          <AvatarImage src={student.avatar} />
+                          <AvatarFallback className="gradient-indigo text-white font-medium text-xs">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-0.5">
+                          <div className="font-medium text-slate-900">{name}</div>
+                          <div className="text-xs text-slate-500">{student.id}</div>
+                          <div className="text-xs text-slate-500">{student.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
@@ -137,16 +142,17 @@ export function StudentTable({ students, onViewStudent, onEditStudent, onDeleteS
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+            })}
             </TableBody>
           </Table>
         </div>
 
         {/* Pagination */}
-        {students.length > 0 && (
+        {safeStudents.length > 0 && (
           <div className="py-4 border-t border-slate-100 flex items-center justify-between px-6">
             <div className="text-sm text-slate-500">
-              Showing {startIndex + 1} to {endIndex} of {students.length} entries
+              Showing {startIndex + 1} to {endIndex} of {safeStudents.length} entries
             </div>
             <Pagination className="w-auto mx-0">
               <PaginationContent>

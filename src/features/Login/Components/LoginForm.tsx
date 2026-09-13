@@ -37,7 +37,7 @@ const LoginForm = () => {
           placeholder={LOGIN_TEXT.ID_EMAIL_PLACEHOLDER}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className={`pl-10 ${errors.email ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+          className={`pl-10 ${errors.email || errors.submit ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
         />
       </div>
       {errors.email && (
@@ -59,7 +59,7 @@ const LoginForm = () => {
           placeholder={LOGIN_TEXT.PASSWORD_PLACEHOLDER}
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className={`pl-10 pr-10 ${errors.password ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+          className={`pl-10 pr-10 ${errors.password || errors.submit ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
         />
         <button
           type="button"
@@ -76,6 +76,7 @@ const LoginForm = () => {
         </div>
       )}
     </div>
+
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -100,6 +101,7 @@ const LoginForm = () => {
         </button>
       </div>
     </div>
+
     <Button
       type="submit"
       disabled={isLoading}
@@ -115,6 +117,14 @@ const LoginForm = () => {
         </>
       )}
     </Button>
+
+    {/* General Submission Error Box Displayed Below Submit Button */}
+    {errors.submit && (
+      <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2 text-xs text-rose-700 mt-2">
+        <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+        <span>{errors.submit}</span>
+      </div>
+    )}
   </form>
 }
 
