@@ -3,12 +3,12 @@ import { SidebarProvider } from "../components/ui/sidebar";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardHeader } from "./components/HeaderComponent";
 import { ToastContainer } from "../components/ui/Toast";
+import { getStoredAuthToken } from "../utils/authStorage";
 
 const menuItems = [
   { id: 'overview', label: 'Dashboard' },
   { id: 'students', label: 'Students' },
-  { id: 'teachers', label: 'Teachers' },
-  { id: 'exams', label: 'Exam Management' },
+  { id: 'teachers', label: 'Staff' },
   { id: 'admins', label: 'Administrators' },
 ];
 
@@ -22,16 +22,15 @@ export function AdminLayout() {
   const getActiveSection = () => {
     if (path.includes('students')) return 'students';
     if (path.includes('teachers')) return 'teachers';
-    if (path.includes('exams')) return 'exams';
     if (path.includes('admins')) return 'admins';
     return 'overview';
   };
 
   const activeSection = getActiveSection();
-console.log("AdminLayout activeSection:", activeSection);
+  console.log("AdminLayout activeSection:", activeSection);
 
   // Authentication check
-  const authToken = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+  const authToken = getStoredAuthToken();
   if (!authToken) {
     return <Navigate to="/login" replace />;
   }
@@ -39,17 +38,17 @@ console.log("AdminLayout activeSection:", activeSection);
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">
-        <Sidebar 
-         
+        <Sidebar
+
         />
-        
+
         <div className="flex-1 flex flex-col overflow-hidden">
-          <DashboardHeader 
+          <DashboardHeader
             activeSection={activeSection}
             menuItems={menuItems}
             getActiveMenuColor={getActiveMenuColor}
           />
-          
+
           <main className="flex-1 overflow-auto p-6">
             <div className="animate-float">
               <Outlet />

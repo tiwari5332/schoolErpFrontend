@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import ROUTES from '../router/RouterConstant';
+import { ROUTES } from '@/shared/constants/routes';
 
 const ToggleSingupLogin = ({ isLogin=true }: { isLogin: boolean }) => {
   const navigate = useNavigate();

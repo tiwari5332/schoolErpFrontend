@@ -53,11 +53,9 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
     setIsSubmitting(false);
   }, [isOpen, gradeData]);
 
-  const isDeptValid = Boolean(departmentId && departmentId !== 'unassigned');
   const isSeqValid = Number(sequenceOrder) >= 1;
-  const isFormValid = gradeName.trim().length > 0 && isDeptValid && isSeqValid;
+  const isFormValid = gradeName.trim().length > 0 && isSeqValid;
 
-  const showDeptError = (isDeptTouched || hasAttemptedSubmit) && !isDeptValid;
   const showSeqError = (isSeqTouched || hasAttemptedSubmit) && !isSeqValid;
 
   const handleSave = async () => {
@@ -69,7 +67,7 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
       await onSave({
         id: gradeData?.id,
         grade: gradeName.trim(),
-        departmentId,
+        departmentId: departmentId || 'unassigned',
         sequenceOrder: Math.max(1, Number(sequenceOrder) || 1),
         stream,
         sections: gradeData?.sections || []
@@ -96,7 +94,7 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
                 {gradeData ? 'Edit Grade/Class' : 'New Grade/Class'}
               </DialogTitle>
               <DialogDescription>
-                {gradeData ? 'Update grade details and department assignment.' : 'Configure a new top-level grade hierarchy.'}
+                {gradeData ? 'Update grade details and sequence order.' : 'Configure a new top-level grade hierarchy.'}
               </DialogDescription>
             </div>
           </div>
@@ -118,31 +116,6 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label className="text-sm font-medium text-slate-700">
-                Department Faculty <span className="text-rose-500 font-bold">*</span>
-              </Label>
-              <Select 
-                value={departmentId} 
-                onValueChange={(val) => {
-                  setDepartmentId(val);
-                  setIsDeptTouched(true);
-                }}
-              >
-                <SelectTrigger className={`border-slate-200 bg-white ${showDeptError ? 'border-rose-400 ring-1 ring-rose-400' : ''}`}>
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-                <SelectContent className="bg-white text-slate-900 z-[100]">
-                  {(departments || []).map(d => (
-                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {showDeptError && (
-                <span className="text-[10px] text-rose-500 font-medium">Department is required</span>
-              )}
-            </div>
-
-            <div className="grid gap-2">
               <Label htmlFor="seqOrder" className="text-sm font-medium text-slate-700">
                 Sequence Order <span className="text-rose-500 font-bold">*</span>
               </Label>
@@ -162,21 +135,21 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
                 <span className="text-[10px] text-rose-500 font-medium">Sequence cannot be 0 or negative</span>
               )}
             </div>
-          </div>
 
-          <div className="grid gap-2">
-            <Label className="text-sm font-medium text-slate-700">Academic Stream</Label>
-            <Select value={stream} onValueChange={(val: any) => setStream(val)}>
-              <SelectTrigger className="border-slate-200 bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white text-slate-900 z-[100]">
-                <SelectItem value="General">General</SelectItem>
-                <SelectItem value="Science">Science</SelectItem>
-                <SelectItem value="Commerce">Commerce</SelectItem>
-                <SelectItem value="Arts">Arts</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid gap-2">
+              <Label className="text-sm font-medium text-slate-700">Academic Stream</Label>
+              <Select value={stream} onValueChange={(val: any) => setStream(val)}>
+                <SelectTrigger className="border-slate-200 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-slate-900 z-[100]">
+                  <SelectItem value="General">General</SelectItem>
+                  <SelectItem value="Science">Science</SelectItem>
+                  <SelectItem value="Commerce">Commerce</SelectItem>
+                  <SelectItem value="Arts">Arts</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

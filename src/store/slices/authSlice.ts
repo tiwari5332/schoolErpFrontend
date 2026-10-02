@@ -1,5 +1,12 @@
 import { StateCreator } from 'zustand';
 import { AuthSlice, AppStoreState } from '../types';
+import {
+  getStoredAuthToken,
+  getStoredUserInfo,
+  setStoredAuthToken,
+  setStoredUserInfo,
+  clearAuthSession
+} from '../../utils/authStorage';
 
 export const createAuthSlice: StateCreator<
   AppStoreState,
@@ -7,29 +14,20 @@ export const createAuthSlice: StateCreator<
   [],
   AuthSlice
 > = (set) => ({
-  token: localStorage.getItem('auth_token'),
-  user: (() => {
-    try {
-      const storedUser = localStorage.getItem('user_info');
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch {
-      return null;
-    }
-  })(),
-  isAuthenticated: Boolean(localStorage.getItem('auth_token')),
+  token: getStoredAuthToken(),
+  user: getStoredUserInfo(),
+  isAuthenticated: Boolean(getStoredAuthToken()),
 
-  setSession: (token, user) => {
-    localStorage.setItem('auth_token', token);
+  setSession: (token, user, rememberMe = true) => {
+    setStoredAuthToken(token, rememberMe);
     if (user) {
-      localStorage.setItem('user_info', JSON.stringify(user));
+      setStoredUserInfo(user, rememberMe);
     }
     set({ token, user, isAuthenticated: true });
   },
 
   clearSession: () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user_info');
+    clearAuthSession();
     set({ token: null, user: null, isAuthenticated: false });
   },
 });

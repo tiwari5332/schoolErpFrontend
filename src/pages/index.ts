@@ -1,0 +1,14 @@
+export { default as AcademicSetupPage } from './AcademicSetupPage';
+export { default as AdminsPage } from './AdminsPage';
+export { default as AttendanceManagementPage } from './AttendanceManagementPage';
+export { default as CommunicationPage } from './CommunicationPage';
+export { default as DashboardPage } from './DashboardPage';
+export { default as FeeManagementPage } from './FeeManagementPage';
+export { default as ForgotPasswordPage } from './ForgotPasswordPage';
+export { default as LoginPage } from './LoginPage';
+export { default as ProfilePage } from './ProfilePage';
+export { default as ScheduleManagementPage } from './ScheduleManagementPage';
+export { default as SettingsPage } from './SettingsPage';
+export { default as SignupPage } from './SignupPage';
+export { default as StudentManagementPage } from './StudentManagementPage';
+export { default as TeachersPage } from './TeachersPage';

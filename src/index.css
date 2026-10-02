@@ -574,4 +574,36 @@ select {
   background-position: right 0.75rem center;
   background-size: 1rem;
   padding-right: 2.25rem !important;
-}
+}
+
+/* Custom scrollbar hiding utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Styling for native date input elements */
+input[type="date"] {
+  color-scheme: light;
+  accent-color: #6366f1;
+  position: relative;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  filter: invert(0.4) sepia(1) saturate(5) hue-rotate(210deg);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: rgba(99, 102, 241, 0.1);
+  transform: scale(1.05);
+}
+

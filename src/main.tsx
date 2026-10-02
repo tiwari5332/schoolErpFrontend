@@ -1,23 +1,12 @@
 import React from "react";
-import { RouterProvider } from "react-router-dom";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import AppRouter from "./router/index.tsx";
-import { queryClient } from "./api/queryClient.ts";
-import { LocalStorageSync } from "./services/LocalStorageSync.ts";
-import { ToastContainer } from "./components/ui/Toast.tsx";
+import ReactDOM from "react-dom/client";
+import { App } from "./app/App.tsx";
+import "./index.css";
 
-LocalStorageSync.init();
+console.log("App version: 1.0.4 - Vercel Fix Deployment");
 
-const Main = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={AppRouter} />
-      <ToastContainer position="top-right" />
-      {/* Devtools rendered only in development mode */}
-      {(import.meta as any).env?.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
-  );
-};
-
-export default Main;
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

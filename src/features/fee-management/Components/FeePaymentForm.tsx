@@ -30,7 +30,6 @@ export function FeePaymentForm({ record, isOpen, onClose, onSave }: FeePaymentFo
       
       const isOverdue = new Date() > new Date(record.dueDate) && record.balance > 0;
       const suggestedLateFee = isOverdue ? 100 : 0;
-      // Use existing late fee if present, else suggest one
       setApplyLateFee((record.breakdown.lateFee > 0 ? record.breakdown.lateFee : suggestedLateFee).toString());
     }
   }, [isOpen, record]);
@@ -39,7 +38,6 @@ export function FeePaymentForm({ record, isOpen, onClose, onSave }: FeePaymentFo
   const discountAmount = Number(applyDiscount) || 0;
   const lateFeeAmount = Number(applyLateFee) || 0;
   
-  // Calculate effective dues considering new discounts/late fees
   const oldDiscount = record?.breakdown.discount || 0;
   const oldLateFee = record?.breakdown.lateFee || 0;
   
@@ -54,7 +52,6 @@ export function FeePaymentForm({ record, isOpen, onClose, onSave }: FeePaymentFo
     const amount = Number(paymentAmount);
     if (isNaN(amount) || amount <= 0) return;
 
-    // The new total amount required for the term
     const newTotalAmount = record.totalAmount - additionalDiscount + additionalLateFee;
     const newAmountPaid = record.amountPaid + amount;
     const newBalance = Math.max(0, newTotalAmount - newAmountPaid);
@@ -88,83 +85,83 @@ export function FeePaymentForm({ record, isOpen, onClose, onSave }: FeePaymentFo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md glass-card">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+      <DialogContent className="max-w-md bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xl space-y-4">
+        <DialogHeader className="pb-2 border-b border-slate-100">
+          <DialogTitle className="text-base font-bold text-slate-900">
             Record Fee Payment
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-slate-500">
             {record ? `Enter payment details for ${record.studentName} (${record.studentId})` : 'Select a student to record payment'}
           </DialogDescription>
         </DialogHeader>
         {record && (
-          <div className="space-y-6 py-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">Current Balance:</span>
-                <span className="font-medium">₹{record.balance.toLocaleString()}</span>
+          <div className="space-y-4 py-1">
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Current Balance:</span>
+                <span className="font-semibold text-slate-900">₹{record.balance.toLocaleString()}</span>
               </div>
               {(additionalDiscount > 0 || additionalLateFee > 0 || oldDiscount > 0 || oldLateFee > 0) && (
                 <>
-                  <div className="flex justify-between items-center text-emerald-600">
-                    <span className="text-sm">Total Discount:</span>
-                    <span className="text-sm">-₹{discountAmount.toLocaleString()}</span>
+                  <div className="flex justify-between items-center text-xs text-emerald-600">
+                    <span>Total Discount:</span>
+                    <span className="font-medium">-₹{discountAmount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center text-rose-500">
-                    <span className="text-sm">Late Fees:</span>
-                    <span className="text-sm">+₹{lateFeeAmount.toLocaleString()}</span>
+                  <div className="flex justify-between items-center text-xs text-rose-500">
+                    <span>Late Fees:</span>
+                    <span className="font-medium">+₹{lateFeeAmount.toLocaleString()}</span>
                   </div>
                 </>
               )}
-              <div className="flex justify-between items-center pt-2 border-t mt-1">
-                <p className="text-sm font-semibold text-slate-700">Effective Dues</p>
-                <p className="text-xl font-bold text-rose-600">₹{effectiveDues.toLocaleString()}</p>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200/80 mt-1">
+                <p className="text-xs font-bold text-slate-700">Effective Dues</p>
+                <p className="text-base font-extrabold text-rose-600">₹{effectiveDues.toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="discount" className="text-sm font-medium text-emerald-600">Add Discount (₹)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="discount" className="text-xs font-semibold text-emerald-600">Add Discount (₹)</Label>
                 <Input 
                   id="discount" 
                   type="number"
                   placeholder="0" 
-                  className="h-10 border-slate-200 focus:border-emerald-300 focus:ring-emerald-100" 
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-emerald-500" 
                   value={applyDiscount}
                   onChange={(e) => setApplyDiscount(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lateFee" className="text-sm font-medium text-rose-500">Apply Late Fee (₹)</Label>
+              <div className="space-y-1">
+                <Label htmlFor="lateFee" className="text-xs font-semibold text-rose-500">Apply Late Fee (₹)</Label>
                 <Input 
                   id="lateFee" 
                   type="number"
                   placeholder="0" 
-                  className="h-10 border-slate-200 focus:border-rose-300 focus:ring-rose-100" 
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-rose-500" 
                   value={applyLateFee}
                   onChange={(e) => setApplyLateFee(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="text-sm font-medium">Payment Amount (₹) *</Label>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="amount" className="text-xs font-semibold text-slate-700">Payment Amount (₹) *</Label>
                 <Input 
                   id="amount" 
                   type="number"
                   placeholder={`Max: ₹${effectiveDues}`} 
-                  className="h-10 border-slate-200 focus:border-emerald-300 focus:ring-emerald-100" 
+                  className="h-9 text-xs rounded-xl border-slate-200 focus:border-indigo-500" 
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   max={effectiveDues}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="method" className="text-sm font-medium">Payment Method *</Label>
+              <div className="space-y-1">
+                <Label htmlFor="method" className="text-xs font-semibold text-slate-700">Payment Method *</Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-10 border-slate-200 focus:border-emerald-300">
+                  <SelectTrigger className="h-9 text-xs rounded-xl border-slate-200 focus:border-indigo-500">
                     <SelectValue placeholder="Select method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,27 +173,27 @@ export function FeePaymentForm({ record, isOpen, onClose, onSave }: FeePaymentFo
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="remarks" className="text-sm font-medium">Remarks</Label>
+              <div className="space-y-1">
+                <Label htmlFor="remarks" className="text-xs font-semibold text-slate-700">Remarks</Label>
                 <Textarea 
                   id="remarks" 
                   placeholder="Enter any additional notes..." 
                   rows={2} 
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  className="border-slate-200 focus:border-emerald-300 focus:ring-emerald-100"
+                  className="text-xs rounded-xl border-slate-200 focus:border-indigo-500"
                 />
               </div>
             </div>
           </div>
         )}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <Button variant="outline" onClick={onClose} className="rounded-xl h-9 text-xs">
             Cancel
           </Button>
           <Button 
             onClick={handleSave} 
-            className="gradient-emerald text-white shadow-colored-emerald"
+            className="gradient-emerald text-white shadow-colored-emerald rounded-xl h-9 text-xs font-semibold px-4"
             disabled={!paymentAmount || Number(paymentAmount) <= 0 || Number(paymentAmount) > effectiveDues}
           >
             Record Payment

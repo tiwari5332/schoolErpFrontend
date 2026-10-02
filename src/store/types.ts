@@ -32,7 +32,7 @@ export interface AuthSession {
 }
 
 export interface AuthActions {
-  setSession: (token: string, user: AuthSession['user']) => void;
+  setSession: (token: string, user: AuthSession['user'], rememberMe?: boolean) => void;
   clearSession: () => void;
 }
 

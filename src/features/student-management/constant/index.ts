@@ -4,6 +4,10 @@ export interface Student {
   email: string;
   grade: string;
   class: string;
+  section?: string;
+  batchCode?: string;
+  rollNo?: string;
+  fatherName?: string;
   phone: string;
   address: string;
   status: string;
@@ -11,6 +15,8 @@ export interface Student {
   guardian: string;
   avatar: string;
   feeStatus: 'Paid' | 'Pending' | 'Overdue';
+  isPromoted?: boolean;
+  isBlocked?: boolean;
 }
 
 export const GRADES = [

@@ -1,6 +1,21 @@
 export type AudienceRole = 'All' | 'Parents' | 'Teachers' | 'Students';
 export type CommunicationChannel = 'Email' | 'SMS' | 'App Push';
 
+export interface EventCategory {
+  id: string;
+  name: string;
+  color: 'cyan' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'purple';
+  description?: string;
+  isDefault?: boolean;
+}
+
+export const DEFAULT_EVENT_CATEGORIES: EventCategory[] = [
+  { id: 'CAT1', name: 'PTM', color: 'indigo', description: 'Parent-Teacher Meetings & Consultations', isDefault: true },
+  { id: 'CAT2', name: 'Staff Meeting', color: 'purple', description: 'Staff Alignment, Department & Curriculum Meetings', isDefault: true },
+  { id: 'CAT3', name: 'General', color: 'cyan', description: 'General School Events & Assemblies', isDefault: true },
+  { id: 'CAT4', name: 'Sports & Cultural', color: 'emerald', description: 'Sports Tournaments, Arts & Cultural Festivities', isDefault: false },
+];
+
 export interface Announcement {
   id: string;
   title: string;
@@ -18,7 +33,7 @@ export interface Meeting {
   date: string;
   startTime: string;
   endTime: string;
-  type: 'PTM' | 'Staff Meeting' | 'General';
+  type: string; // PTM, Staff Meeting, General or custom category name
   participants: AudienceRole;
   link?: string; // e.g., Zoom/Meet link
   location?: string;
@@ -82,7 +97,7 @@ export const MOCK_MEETINGS: Meeting[] = [
   {
     id: 'MTG1',
     title: 'Grade 10 Parent-Teacher Meeting',
-    date: '2024-04-20',
+    date: '2026-10-20',
     startTime: '14:00',
     endTime: '17:00',
     type: 'PTM',
@@ -92,13 +107,35 @@ export const MOCK_MEETINGS: Meeting[] = [
   },
   {
     id: 'MTG2',
-    title: 'Monthly Staff Alignment',
-    date: '2024-04-18',
+    title: 'Monthly Staff Alignment & Curriculum Planning',
+    date: '2026-10-18',
     startTime: '15:30',
     endTime: '16:30',
     type: 'Staff Meeting',
     participants: 'Teachers',
     link: 'https://meet.google.com/abc-defg-hij',
     organizer: 'Principal Office'
+  },
+  {
+    id: 'MTG3',
+    title: 'Annual Science Exhibition Orientation',
+    date: '2026-09-15',
+    startTime: '10:00',
+    endTime: '12:30',
+    type: 'General',
+    participants: 'All',
+    location: 'School Assembly Hall',
+    organizer: 'Science Department'
+  },
+  {
+    id: 'MTG4',
+    title: 'Term 1 Parent Consultation Workshop',
+    date: '2026-09-01',
+    startTime: '11:00',
+    endTime: '13:00',
+    type: 'PTM',
+    participants: 'Parents',
+    link: 'https://meet.google.com/xyz-uvwx-rst',
+    organizer: 'Counseling Cell'
   }
 ];

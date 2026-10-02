@@ -1,32 +1,44 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LogoutConfirmDialog } from "../../components/LogoutConfirmDialog";
-import { SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "../../components/ui/sidebar";
+import {
+  useSidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem
+} from "../../components/ui/sidebar";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../../components/ui/tooltip";
 import { EduTrioLogoSimple } from "@/components/EduTrioLogo";
-import { 
-  Users, 
-  GraduationCap, 
-  UserCheck, 
+import useAppStore from "@/store";
+import { clearAuthSession } from "@/utils/authStorage";
+import {
+  Users,
+  GraduationCap,
+  UserCheck,
   Home,
-  Settings, 
+  Settings,
   LogOut,
   Wallet,
   Calendar,
   Megaphone,
   Network,
-  ClipboardCheck
+  ClipboardCheck,
+  CheckSquare,
+  PanelLeft,
 } from "lucide-react";
 
 const menuItems = [
-  { id: 'overview', label: 'Dashboard', icon: Home, color: 'indigo', path: '/admin-dashboard' },
-  { id: 'academic-setup', label: 'Academic Setup', icon: Network, color: 'fuchsia', path: '/admin-dashboard/academic-setup' },
-  { id: 'students', label: 'Students', icon: GraduationCap, color: 'cyan', path: '/admin-dashboard/students' },
-  { id: 'teachers', label: 'Teachers', icon: Users, color: 'emerald', path: '/admin-dashboard/teachers' },
-  { id: 'schedule', label: 'Schedule & Timetable', icon: Calendar, color: 'rose', path: '/admin-dashboard/schedule' },
-  { id: 'exams', label: 'Exam Management', icon: ClipboardCheck, color: 'indigo', path: '/admin-dashboard/exams' },
-  { id: 'communication', label: 'Communication Hub', icon: Megaphone, color: 'blue', path: '/admin-dashboard/communication' },
-  { id: 'fees', label: 'Fee Management', icon: Wallet, color: 'amber', path: '/admin-dashboard/fees' },
-  { id: 'admins', label: 'Administrators', icon: UserCheck, color: 'purple', path: '/admin-dashboard/admins' },
+  { id: 'overview', label: 'Dashboard', icon: Home, color: 'indigo', path: '/admin' },
+  { id: 'attendance', label: 'Attendance', icon: CheckSquare, color: 'blue', path: '/admin/attendance' },
+  { id: 'academic-setup', label: 'Academic Setup', icon: Network, color: 'fuchsia', path: '/admin/academic-setup' },
+  { id: 'students', label: 'Students', icon: GraduationCap, color: 'cyan', path: '/admin/students' },
+  { id: 'teachers', label: 'Staff', icon: Users, color: 'emerald', path: '/admin/teachers' },
+  { id: 'schedule', label: 'Schedule & Timetable', icon: Calendar, color: 'rose', path: '/admin/schedule' },
+  { id: 'communication', label: 'Communication Hub', icon: Megaphone, color: 'blue', path: '/admin/communication' },
+  { id: 'fees', label: 'Fee Management', icon: Wallet, color: 'amber', path: '/admin/fees' },
+  { id: 'admins', label: 'Administrators', icon: UserCheck, color: 'purple', path: '/admin/admins' },
 ];
 
 const colorMap: Record<string, { text: string; gradient: string; shadow: string }> = {
@@ -43,86 +55,166 @@ const colorMap: Record<string, { text: string; gradient: string; shadow: string 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const clearSession = useAppStore((state) => state.clearSession);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
+  // Sidebar Context state
+  const { state, toggleSidebar, isMobile } = useSidebar();
+  const isCollapsed = state === 'collapsed' || (isMobile && state !== 'expanded');
+
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
+    clearAuthSession();
+    clearSession();
     navigate('/login');
   };
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="border-r-0 shadow-xl flex flex-col h-full">
-      <SidebarHeader className="border-b border-slate-200/50 px-6 py-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <EduTrioLogoSimple size="lg" className="drop-shadow-sm" />
+    <aside
+      className={`border-r border-slate-200/80 shadow-xl flex flex-col h-full bg-white transition-all duration-300 ease-in-out shrink-0 ${isCollapsed ? 'w-16 sm:w-20' : 'w-64'
+        }`}
+    >
+      {/* ═══ Header Section ═══ */}
+      <SidebarHeader className="border-b border-slate-200/50 px-3 py-4 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <EduTrioLogoSimple size={isCollapsed ? 'sm' : 'lg'} className="drop-shadow-sm" />
+            </div>
+            {!isCollapsed && (
+              <div>
+                <h2 className="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent truncate">
+                  EduTrio
+                </h2>
+                <p className="text-xs text-slate-500 truncate">Admin Portal</p>
+              </div>
+            )}
           </div>
-          <div>
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              EduTrio
-            </h2>
-            <p className="text-sm text-slate-600">Admin Portal</p>
-          </div>
+
+          <button
+            onClick={toggleSidebar}
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors shrink-0"
+          >
+            <PanelLeft className="h-5 w-5" />
+          </button>
         </div>
       </SidebarHeader>
-      <SidebarContent className="px-4 py-6 bg-gradient-to-b from-white to-slate-50/50">
-        <SidebarMenu className="space-y-3">
+
+      {/* ═══ Main Menu Items ═══ */}
+      <SidebarContent className={`py-4 bg-gradient-to-b from-white to-slate-50/50 ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        <SidebarMenu className="space-y-2">
           {menuItems.map((item) => {
             const styles = colorMap[item.color] || colorMap.indigo;
+            const active = isActive(item.path);
+
+            if (isCollapsed) {
+              return (
+                <SidebarMenuItem key={item.id} className="flex justify-center">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => navigate(item.path)}
+                        className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-200 ${active
+                            ? `${styles.gradient} text-white ${styles.shadow}`
+                            : 'text-slate-600 hover:bg-slate-100 hover:scale-105'
+                          }`}
+                      >
+                        <item.icon className={`h-5 w-5 ${active ? 'text-white' : styles.text}`} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-slate-900 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-lg">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                </SidebarMenuItem>
+              );
+            }
+
             return (
               <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
+                <button
                   onClick={() => navigate(item.path)}
-                  isActive={isActive(item.path)}
-                  className={`w-full rounded-xl px-4 py-3.5 text-left transition-all duration-300 group hover:shadow-lg ${
-                    isActive(item.path)
+                  className={`w-full flex items-center rounded-xl px-3.5 py-3 text-left transition-all duration-300 group hover:shadow-md ${active
                       ? `${styles.gradient} text-white ${styles.shadow}`
-                      : 'hover:bg-slate-50 hover:scale-[1.02]'
-                  }`}
+                      : 'hover:bg-slate-100 hover:scale-[1.01]'
+                    }`}
                 >
-                  <item.icon className={`h-5 w-5 ${
-                    isActive(item.path) ? 'text-white' : styles.text
-                  } group-hover:scale-110 transition-transform duration-200`} />
-                  <span className="ml-3 font-medium">{item.label}</span>
-                  {isActive(item.path) && (
-                    <div className="ml-auto h-2 w-2 rounded-full bg-white/30 animate-pulse-slow" />
-                  )}
-                </SidebarMenuButton>
+                  <item.icon
+                    className={`h-5 w-5 shrink-0 ${active ? 'text-white' : styles.text
+                      } group-hover:scale-110 transition-transform duration-200`}
+                  />
+                  <span className="ml-3 text-xs font-semibold truncate">{item.label}</span>
+                  {active && <div className="ml-auto h-2 w-2 rounded-full bg-white/40 animate-pulse-slow" />}
+                </button>
               </SidebarMenuItem>
             );
           })}
         </SidebarMenu>
       </SidebarContent>
 
-      {/* Settings & Logout pinned to bottom */}
-      <SidebarFooter className="border-t border-slate-200/50 px-4 py-4 bg-gradient-to-t from-slate-50/80 to-white space-y-1">
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            onClick={() => navigate('/admin-dashboard/settings')}
-            className={`w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:scale-[1.02] group ${
-              isActive('/admin-dashboard/settings')
-                ? 'gradient-indigo text-white shadow-colored-indigo'
-                : 'hover:bg-slate-100'
-            }`}
-          >
-            <Settings className={`h-5 w-5 ${
-              isActive('/admin-dashboard/settings') ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'
-            } group-hover:rotate-90 transition-all duration-300`} />
-            <span className={`ml-3 font-medium ${
-              isActive('/admin-dashboard/settings') ? 'text-white' : 'text-slate-700'
-            }`}>Settings</span>
-          </SidebarMenuButton>
+      {/* ═══ Footer Section (Settings & Logout) ═══ */}
+      <SidebarFooter className={`border-t border-slate-200/50 py-3 bg-gradient-to-t from-slate-50/80 to-white space-y-1 ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        {/* Settings */}
+        <SidebarMenuItem className={isCollapsed ? 'flex justify-center' : ''}>
+          {isCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate('/admin/settings')}
+                  className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-200 ${isActive('/admin/settings')
+                      ? 'gradient-indigo text-white shadow-colored-indigo'
+                      : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                >
+                  <Settings className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-slate-900 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-lg">
+                Settings
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <button
+              onClick={() => navigate('/admin/settings')}
+              className={`w-full flex items-center rounded-xl px-3.5 py-2.5 text-left transition-all duration-300 group ${isActive('/admin/settings')
+                  ? 'gradient-indigo text-white shadow-colored-indigo'
+                  : 'hover:bg-slate-100 text-slate-700'
+                }`}
+            >
+              <Settings className={`h-5 w-5 shrink-0 ${isActive('/admin/settings') ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'
+                } group-hover:rotate-90 transition-all duration-300`} />
+              <span className="ml-3 text-xs font-semibold truncate">Settings</span>
+            </button>
+          )}
         </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton 
-            onClick={() => setShowLogoutDialog(true)}
-            className="w-full rounded-xl px-4 py-3 text-left transition-all duration-300 hover:bg-rose-50 hover:scale-[1.02] text-rose-600 hover:text-rose-700 group"
-          >
-            <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
-            <span className="ml-3 font-medium">Logout</span>
-          </SidebarMenuButton>
+
+        {/* Logout */}
+        <SidebarMenuItem className={isCollapsed ? 'flex justify-center' : ''}>
+          {isCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="h-11 w-11 flex items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all duration-200"
+                >
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-rose-600 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-lg">
+                Logout
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="w-full flex items-center rounded-xl px-3.5 py-2.5 text-left transition-all duration-300 hover:bg-rose-50 text-rose-600 hover:text-rose-700 group"
+            >
+              <LogOut className="h-5 w-5 shrink-0 group-hover:translate-x-0.5 transition-transform duration-200" />
+              <span className="ml-3 text-xs font-semibold truncate">Logout</span>
+            </button>
+          )}
         </SidebarMenuItem>
       </SidebarFooter>
 
@@ -131,7 +223,7 @@ export function Sidebar() {
         onOpenChange={setShowLogoutDialog}
         onConfirm={handleLogout}
       />
-    </div>
+    </aside>
   );
 }
 

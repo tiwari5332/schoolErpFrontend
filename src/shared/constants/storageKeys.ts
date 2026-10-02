@@ -1,0 +1,15 @@
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'token',
+  REFRESH_TOKEN: 'refresh_token',
+  USER_DATA: 'user_data',
+  DEVICE_ID: 'edutrio_device_id',
+  ANNOUNCEMENTS: 'edu_trio_announcements',
+  MEETINGS: 'edu_trio_meetings',
+  TEMPLATES: 'edu_trio_templates',
+  EVENT_CATEGORIES: 'edu_trio_event_categories',
+  FEES_DATA: 'edu_trio_fees_data',
+  TEACHERS_DATA: 'edu_trio_teachers_data',
+  STUDENTS_DATA: 'edu_trio_students_data',
+  ACADEMIC_SETUP: 'edu_trio_academic_setup',
+  SETTINGS: 'edu_trio_settings',
+} as const;

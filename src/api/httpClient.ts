@@ -1,15 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { ENV } from '../config/env';
 import useAppStore from '../store';
+import { getStoredAuthToken, clearAuthSession, AUTH_TOKEN_KEY } from '../utils/authStorage';
 
-/**
- * Centralized HTTP Client Instance configured with environment base URL,
- * default headers, configurable timeout, and interceptors for security and error handling.
- */
-
-// Storage keys checked for authorization token
-export const AUTH_TOKEN_KEY = 'auth_token';
-const ALT_AUTH_TOKEN_KEY = 'authToken';
+export { AUTH_TOKEN_KEY };
 
 export const httpClient: AxiosInstance = axios.create({
   baseURL: ENV.API_BASE_URL,
@@ -27,12 +21,12 @@ export const httpClient: AxiosInstance = axios.create({
 httpClient.interceptors.request.use(
   (config) => {
     try {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(ALT_AUTH_TOKEN_KEY);
+      const token = getStoredAuthToken();
       if (token) {
         config.headers.set('Authorization', token.startsWith('Bearer ') ? token : `Bearer ${token}`);
       }
     } catch (e) {
-      console.warn('[httpClient] Error accessing localStorage for token attachment', e);
+      console.warn('[httpClient] Error accessing storage for token attachment', e);
     }
     return config;
   },
@@ -66,11 +60,9 @@ httpClient.interceptors.response.use(
         console.warn(`[httpClient] Received status ${status}. Clearing session and auto-logging out.`);
         
         try {
-          // Clear Zustand store state and localStorage keys
+          // Clear Zustand store state and storage keys
           useAppStore.getState().clearSession();
-          localStorage.removeItem(AUTH_TOKEN_KEY);
-          localStorage.removeItem(ALT_AUTH_TOKEN_KEY);
-          localStorage.removeItem('user_info');
+          clearAuthSession();
         } catch (e) {
           console.warn('[httpClient] Error clearing auth session on 401/403', e);
         }

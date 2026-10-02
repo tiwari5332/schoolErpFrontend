@@ -1,1 +1,0 @@
-export { default as AdminManagement } from './Pages/AdminList';
