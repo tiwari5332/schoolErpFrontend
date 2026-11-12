@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeeView } from './components/FeeView';
+import FeeView from './Components/FeeView';
 
 export function FeeManagementFeature() {
   return <FeeView />;
