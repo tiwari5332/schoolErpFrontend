@@ -1,5 +1,5 @@
 import React from 'react';
-import { AcademicSetupView } from './components/AcademicSetupView';
+import AcademicSetupView from './Components/AcademicSetupView';
 
 export function AcademicSetupFeature() {
   return <AcademicSetupView />;

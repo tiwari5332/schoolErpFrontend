@@ -39,7 +39,6 @@ export function AdminLayout() {
     <SidebarProvider>
       <div className="flex h-screen w-full">
         <Sidebar
-
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
