@@ -17,7 +17,7 @@ interface ManageSectionModalProps {
 
 export function ManageSectionModal({ isOpen, onClose, onSave, sectionData, teachers = [] }: ManageSectionModalProps) {
   const [name, setName] = useState('');
-  const [capacity, setCapacity] = useState<number>(30);
+  const [capacity, setCapacity] = useState<number>(45);
   const [classTeacherId, setClassTeacherId] = useState<string>('unassigned');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -25,11 +25,11 @@ export function ManageSectionModal({ isOpen, onClose, onSave, sectionData, teach
   useEffect(() => {
     if (isOpen && sectionData) {
       setName(sectionData.name);
-      setCapacity(sectionData.capacity || 30);
+      setCapacity(sectionData.capacity || 45);
       setClassTeacherId(sectionData.classTeacherId || 'unassigned');
     } else if (isOpen && !sectionData) {
       setName('');
-      setCapacity(30);
+      setCapacity(45);
       setClassTeacherId('unassigned');
     }
     setApiError(null);

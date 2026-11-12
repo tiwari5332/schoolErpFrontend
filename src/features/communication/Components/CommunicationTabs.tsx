@@ -44,6 +44,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CategoryFormModal } from "./CategoryFormModal";
 
 interface CommunicationTabsProps {
   announcements: Announcement[];
@@ -89,46 +90,23 @@ export function CommunicationTabs({
 
   // Dedicated Category Tab States
   const [categorySearch, setCategorySearch] = useState('');
-  const [editingCategory, setEditingCategory] = useState<EventCategory | null>(null);
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [categoryName, setCategoryName] = useState('');
-  const [categoryColor, setCategoryColor] = useState('cyan');
-  const [categoryDescription, setCategoryDescription] = useState('');
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<EventCategory | null>(null);
 
   const handleStartAddCategory = () => {
-    setEditingCategory(null);
-    setCategoryName('');
-    setCategoryColor('cyan');
-    setCategoryDescription('');
-    setIsAddingCategory(true);
+    setCategoryToEdit(null);
+    setIsCategoryModalOpen(true);
   };
 
   const handleStartEditCategory = (cat: EventCategory) => {
-    setIsAddingCategory(false);
-    setEditingCategory(cat);
-    setCategoryName(cat.name);
-    setCategoryColor(cat.color || 'cyan');
-    setCategoryDescription(cat.description || '');
+    setCategoryToEdit(cat);
+    setIsCategoryModalOpen(true);
   };
 
-  const handleSaveCategoryForm = () => {
-    if (!categoryName.trim()) return;
-
-    const targetId = editingCategory ? editingCategory.id : `cat-${Date.now()}`;
-    const newCat: EventCategory = {
-      id: targetId,
-      name: categoryName.trim(),
-      color: categoryColor,
-      description: categoryDescription.trim(),
-      isDefault: editingCategory?.isDefault || false
-    };
-
-    onSaveCategory?.(newCat);
-
-    setIsAddingCategory(false);
-    setEditingCategory(null);
-    setCategoryName('');
-    setCategoryDescription('');
+  const handleSaveCategoryModal = (cat: EventCategory) => {
+    onSaveCategory?.(cat);
+    setIsCategoryModalOpen(false);
+    setCategoryToEdit(null);
   };
 
   const getCategoryBadgeClass = (color: string) => {
@@ -1011,88 +989,11 @@ export function CommunicationTabs({
 
               <Button
                 onClick={handleStartAddCategory}
-                className="gradient-emerald text-white text-xs font-semibold rounded-xl h-9 px-4 gap-1.5 shadow-colored-emerald shrink-0"
+                className="gradient-emerald text-white text-xs font-semibold rounded-xl h-9 px-4 gap-1.5 shadow-colored-emerald shrink-0 hover:scale-[1.02] transition-transform"
               >
-                <Plus className="h-4 w-4" /> + Create New Category
+                <Plus className="h-4 w-4" /> Create New Category
               </Button>
             </CardHeader>
-
-            {/* Inline Creation / Edit Form Card */}
-            {(isAddingCategory || editingCategory) && (
-              <div className="p-5 bg-slate-50/90 border-b border-slate-200/80 animate-in fade-in slide-in-from-top-2 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-xs text-slate-900 flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-cyan-600" />
-                    {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Create New Event Category'}
-                  </h4>
-                  <Badge variant="outline" className={getCategoryBadgeClass(categoryColor)}>
-                    Badge Preview: {categoryName || 'Sample Category'}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">Category Title / Name *</label>
-                    <Input
-                      placeholder="e.g. Science Fair & Exhibition"
-                      value={categoryName}
-                      onChange={(e) => setCategoryName(e.target.value)}
-                      className="h-9 text-xs rounded-xl border-slate-200 bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">Badge Color Theme *</label>
-                    <Select value={categoryColor} onValueChange={setCategoryColor}>
-                      <SelectTrigger className="h-9 text-xs rounded-xl border-slate-200 bg-white">
-                        <SelectValue placeholder="Select color theme..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cyan">Cyan (Sky Blue)</SelectItem>
-                        <SelectItem value="indigo">Indigo (Deep Purple/Blue)</SelectItem>
-                        <SelectItem value="emerald">Emerald (Vibrant Green)</SelectItem>
-                        <SelectItem value="amber">Amber (Warm Gold)</SelectItem>
-                        <SelectItem value="rose">Rose (Coral Red)</SelectItem>
-                        <SelectItem value="purple">Purple (Royal Violet)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="font-semibold text-slate-700">Description / Usage Context</label>
-                    <Input
-                      placeholder="e.g. For annual science expos, project showcases, and STEM competitions."
-                      value={categoryDescription}
-                      onChange={(e) => setCategoryDescription(e.target.value)}
-                      className="h-9 text-xs rounded-xl border-slate-200 bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsAddingCategory(false);
-                      setEditingCategory(null);
-                    }}
-                    className="h-8 text-xs rounded-xl border-slate-200"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveCategoryForm}
-                    disabled={!categoryName.trim()}
-                    className="gradient-indigo text-white text-xs font-semibold rounded-xl h-8 px-4 gap-1.5 shadow-sm"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    {editingCategory ? 'Update Category' : 'Save Category'}
-                  </Button>
-                </div>
-              </div>
-            )}
 
             {/* Filter Search */}
             <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between gap-4">
@@ -1367,6 +1268,17 @@ export function CommunicationTabs({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Category Create / Edit Modal */}
+      <CategoryFormModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          setCategoryToEdit(null);
+        }}
+        category={categoryToEdit}
+        onSave={handleSaveCategoryModal}
+      />
     </div>
   );
 }

@@ -31,6 +31,16 @@ import {
   X,
 } from "lucide-react";
 import { LocalStorageSync } from "../../services/LocalStorageSync";
+import { SessionDropdown, NotCurrentSessionBanner } from "../../features/academic-sessions";
+
+// ─── Greeting Helper based on user's local time ─────────────
+
+function getGreeting(): string {
+  const hours = new Date().getHours();
+  if (hours < 12) return "Good Morning";
+  if (hours < 17) return "Good Afternoon";
+  return "Good Evening";
+}
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -137,7 +147,6 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
 export function DashboardHeader() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [academicYear, setAcademicYear] = useState('2024-25');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
@@ -183,49 +192,24 @@ export function DashboardHeader() {
 
   const initials = profileName.split(' ').map(n => n[0]).join('').toUpperCase();
 
-  const currentYear = new Date().getFullYear();
-  const baseYear = currentYear >= 2024 ? currentYear : 2024;
-  const academicYears = Array.from({ length: 10 }, (_, i) => {
-    const startYear = baseYear - i;
-    return `${startYear}-${(startYear + 1).toString().slice(-2)}`;
-  });
-
   return (
-    <header className="border-b border-slate-200/50 bg-white/80 backdrop-blur-lg px-3 sm:px-6 py-3.5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+    <header className="relative z-40 border-b border-slate-200/50 bg-white/80 backdrop-blur-lg px-3 sm:px-6 py-3.5 shadow-sm">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
           <div className="min-w-0 truncate">
             <h1 className="text-xs sm:text-base font-semibold text-slate-700 truncate">
-              Good Evening, <span className="text-indigo-600 font-bold">{profileName || "Radha Krishnan"} enter college</span>
+              {getGreeting()}, <span className="text-indigo-600 font-bold">{(profileName || "Radha Krishnan").replace(/enter college/gi, '').trim()}</span>
             </h1>
           </div>
+          <NotCurrentSessionBanner />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <Button variant="ghost" size="sm" className="relative rounded-full hover:bg-slate-100 transition-all duration-200">
             <Search className="h-4 w-4 text-slate-500" />
           </Button>
 
-          {/* Academic Session Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-1.5 text-xs text-slate-600 font-medium hover:bg-slate-100 h-8 px-3 rounded-lg">
-                <span className="text-slate-400">Session</span>
-                <span className="font-semibold text-indigo-700">{academicYear}</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-60 ml-0.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px]">
-              {academicYears.map(year => (
-                <DropdownMenuItem 
-                  key={year} 
-                  onClick={() => setAcademicYear(year)}
-                  className={year === academicYear ? "bg-indigo-50 text-indigo-700 font-medium" : ""}
-                >
-                  Session {year}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Global Academic Session Switcher */}
+          <SessionDropdown />
 
           {/* ═══ Notification Bell ═══ */}
           <DropdownMenu open={isNotifOpen} onOpenChange={setIsNotifOpen}>

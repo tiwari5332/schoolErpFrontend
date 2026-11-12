@@ -24,7 +24,7 @@ export function BulkAddSectionsModal({
 }: BulkAddSectionsModalProps) {
   const [classGrpId, setClassGrpId] = useState<string>(selectedClassGrpId || (classes[0]?.id || ''));
   const [rawInput, setRawInput] = useState<string>('A, B, C, D');
-  const [capacity, setCapacity] = useState<number>(30);
+  const [capacity, setCapacity] = useState<number>(45);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ export function BulkAddSectionsModal({
     if (isOpen) {
       setClassGrpId(selectedClassGrpId || (classes[0]?.id || ''));
       setRawInput('A, B, C, D');
-      setCapacity(30);
+      setCapacity(45);
       setApiError(null);
       setIsSubmitting(false);
     }

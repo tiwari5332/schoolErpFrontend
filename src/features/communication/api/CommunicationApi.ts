@@ -1,15 +1,18 @@
+import httpClient from '../../../api/httpClient';
 import ApiService, { delay } from '../../../services/ApiService';
-import { 
+import {
   Announcement,
   Meeting,
   AnnouncementTemplate,
   COMMUNICATION_TEMPLATES,
   EventCategory,
-  DEFAULT_EVENT_CATEGORIES
+  DEFAULT_EVENT_CATEGORIES,
+  MOCK_ANNOUNCEMENTS
 } from '../Constants';
 import { LocalStorageSync } from '../../../services/LocalStorageSync';
+import { getStoredAuthToken, getStoredUserInfo } from '../../../utils/authStorage';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export const CommunicationApi = {
   getEventCategories: async (): Promise<EventCategory[]> => {
@@ -22,23 +25,26 @@ export const CommunicationApi = {
       }
       return stored;
     }
-    return await ApiService.get<EventCategory[]>('/communication/event-categories');
+    try {
+      return await ApiService.get<EventCategory[]>('/communication/event-categories');
+    } catch {
+      const stored = LocalStorageSync.get<EventCategory[]>("edu_trio_event_categories");
+      return stored && stored.length > 0 ? stored : [...DEFAULT_EVENT_CATEGORIES];
+    }
   },
 
   saveEventCategory: async (category: Partial<EventCategory>): Promise<EventCategory> => {
-    if (USE_MOCK) {
-      await delay(300);
+    try {
+      return await ApiService.post<EventCategory>('/communication/event-categories', category);
+    } catch {
       const list = LocalStorageSync.get<EventCategory[]>("edu_trio_event_categories") || [...DEFAULT_EVENT_CATEGORIES];
-      
       let updated: EventCategory[];
       let savedCategory: EventCategory;
 
       if (category.id) {
-        // Edit existing category
         updated = list.map(c => c.id === category.id ? { ...c, ...category } as EventCategory : c);
         savedCategory = updated.find(c => c.id === category.id)!;
       } else {
-        // Create new category
         savedCategory = {
           id: `CAT${Date.now().toString().slice(-4)}`,
           name: category.name || 'Custom Category',
@@ -52,53 +58,113 @@ export const CommunicationApi = {
       LocalStorageSync.set("edu_trio_event_categories", updated);
       return savedCategory;
     }
-    return await ApiService.post<EventCategory>('/communication/event-categories', category);
   },
 
   deleteEventCategory: async (categoryId: string): Promise<boolean> => {
-    if (USE_MOCK) {
-      await delay(300);
+    try {
+      return await ApiService.delete(`/communication/event-categories/${categoryId}`);
+    } catch {
       const list = LocalStorageSync.get<EventCategory[]>("edu_trio_event_categories") || [...DEFAULT_EVENT_CATEGORIES];
       const updated = list.filter(c => c.id !== categoryId);
       LocalStorageSync.set("edu_trio_event_categories", updated);
       return true;
     }
-    return await ApiService.delete(`/communication/event-categories/${categoryId}`);
   },
+
+  /**
+   * GET /api/broadcast/list
+   * Fetches broadcast list from backend with Bearer Token in header and schoolId in query/payload
+   */
   getAnnouncements: async (): Promise<Announcement[]> => {
-    if (USE_MOCK) {
-      await delay(400);
-      const data = LocalStorageSync.get<Announcement[]>("edu_trio_announcements");
-      return data || [];
+    try {
+      const token = getStoredAuthToken();
+      const userInfo = getStoredUserInfo();
+      const schoolId = userInfo?.schoolId || userInfo?.school_id || '';
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+      if (schoolId) {
+        headers['x-school-id'] = schoolId;
+      }
+
+      let response;
+      try {
+        response = await httpClient.get<any>('/api/broadcast/list', {
+          params: { schoolId, school_id: schoolId },
+          headers,
+        });
+      } catch {
+        // Fallback endpoint if /api/broadcast/list returns 404
+        response = await httpClient.get<any>('/api/broadcast', {
+          params: { schoolId, school_id: schoolId },
+          headers,
+        });
+      }
+
+      const rawData = response.data;
+      let list: any[] = [];
+      if (Array.isArray(rawData)) {
+        list = rawData;
+      } else if (rawData && typeof rawData === 'object') {
+        if (Array.isArray(rawData.data)) {
+          list = rawData.data;
+        } else if (Array.isArray(rawData.broadcasts)) {
+          list = rawData.broadcasts;
+        } else if (Array.isArray(rawData.items)) {
+          list = rawData.items;
+        }
+      }
+
+      if (list && list.length > 0) {
+        const normalized = list.map((item: any, idx: number) => ({
+          id: String(item.id || item.broadcast_id || `ANN${idx + 1}`),
+          title: item.title || item.subject || 'Broadcast Notice',
+          message: item.message || item.body || item.content || '',
+          targetAudience: (item.targetAudience || item.target_audience || item.audience || 'All') as any,
+          targetClass: item.targetClass || item.target_class || 'All',
+          channels: Array.isArray(item.channels)
+            ? item.channels
+            : (typeof item.channels === 'string' && item.channels ? item.channels.split(',').map((c: string) => c.trim()) : ['Email']),
+          sentAt: item.sentAt || item.sent_at || item.created_at || new Date().toISOString(),
+          sentBy: item.sentBy || item.sent_by || item.created_by || 'Admin',
+        }));
+
+        // Save fresh fetched broadcasts to storage
+        LocalStorageSync.set("edu_trio_announcements", normalized);
+        return normalized;
+      }
+    } catch (error) {
+      console.warn('[CommunicationApi.getAnnouncements] GET /api/broadcast/list API call failed, using fallback storage', error);
     }
-    return await ApiService.get<Announcement[]>('/communication/announcements');
+
+    const stored = LocalStorageSync.get<Announcement[]>("edu_trio_announcements");
+    return stored && stored.length > 0 ? stored : MOCK_ANNOUNCEMENTS;
   },
 
   getMeetings: async (): Promise<Meeting[]> => {
-    if (USE_MOCK) {
-      await delay(400);
+    try {
+      return await ApiService.get<Meeting[]>('/communication/meetings');
+    } catch {
       const data = LocalStorageSync.get<Meeting[]>("edu_trio_meetings");
-      return data || [];
+      return data && data.length > 0 ? data : [];
     }
-    return await ApiService.get<Meeting[]>('/communication/meetings');
   },
 
   getTemplates: async (): Promise<AnnouncementTemplate[]> => {
-    if (USE_MOCK) {
-      await delay(200);
+    try {
+      return await ApiService.get<AnnouncementTemplate[]>('/communication/templates');
+    } catch {
       const stored = LocalStorageSync.get<AnnouncementTemplate[]>("edu_trio_templates");
-      if (!stored || stored.length === 0) {
-        LocalStorageSync.set("edu_trio_templates", COMMUNICATION_TEMPLATES);
-        return [...COMMUNICATION_TEMPLATES];
-      }
-      return stored;
+      return stored && stored.length > 0 ? stored : [...COMMUNICATION_TEMPLATES];
     }
-    return await ApiService.get<AnnouncementTemplate[]>('/communication/templates');
   },
 
   createTemplate: async (template: Partial<AnnouncementTemplate>): Promise<AnnouncementTemplate> => {
-    if (USE_MOCK) {
-      await delay(400);
+    try {
+      return await ApiService.post<AnnouncementTemplate>('/communication/templates', template);
+    } catch {
       const list = LocalStorageSync.get<AnnouncementTemplate[]>("edu_trio_templates") || [...COMMUNICATION_TEMPLATES];
       const newTpl: AnnouncementTemplate = {
         id: `TPL${Date.now().toString().slice(-4)}`,
@@ -111,34 +177,90 @@ export const CommunicationApi = {
       LocalStorageSync.set("edu_trio_templates", updated);
       return newTpl;
     }
-    return await ApiService.post<AnnouncementTemplate>('/communication/templates', template);
   },
 
+  /**
+   * POST /api/broadcast/list or /api/broadcast
+   * Dispatches new broadcast to backend API with Bearer Token & schoolId payload
+   */
   sendAnnouncement: async (announcement: Partial<Announcement>): Promise<Announcement> => {
-    if (USE_MOCK) {
-      await delay(600);
-      const list = LocalStorageSync.get<Announcement[]>("edu_trio_announcements") || [];
-      const newAnn: Announcement = {
-        id: `ANN${Date.now()}`,
+    try {
+      const token = getStoredAuthToken();
+      const userInfo = getStoredUserInfo();
+      const schoolId = userInfo?.schoolId || userInfo?.school_id || '';
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+      if (schoolId) {
+        headers['x-school-id'] = schoolId;
+      }
+
+      const payload = {
+        schoolId,
+        school_id: schoolId,
         title: announcement.title || '',
+        subject: announcement.title || '',
         message: announcement.message || '',
+        body: announcement.message || '',
         targetAudience: announcement.targetAudience || 'All',
+        target_audience: announcement.targetAudience || 'All',
         targetClass: announcement.targetClass,
-        channels: announcement.channels || [],
-        sentAt: new Date().toISOString(),
-        sentBy: announcement.sentBy || 'Admin'
+        target_class: announcement.targetClass,
+        channels: announcement.channels || ['Email'],
+        sentBy: announcement.sentBy || 'Admin',
       };
-      
-      const updated = [newAnn, ...list]; // Show newest first
-      LocalStorageSync.set("edu_trio_announcements", updated);
-      return newAnn;
+
+      let response;
+      try {
+        response = await httpClient.post<any>('/api/broadcast/list', payload, { headers });
+      } catch {
+        response = await httpClient.post<any>('/api/broadcast', payload, { headers });
+      }
+
+      const resData = response.data?.data || response.data;
+      if (resData) {
+        const newAnn: Announcement = {
+          id: String(resData.id || resData.broadcast_id || `ANN${Date.now()}`),
+          title: resData.title || resData.subject || announcement.title || '',
+          message: resData.message || resData.body || announcement.message || '',
+          targetAudience: (resData.targetAudience || resData.target_audience || announcement.targetAudience || 'All') as any,
+          targetClass: resData.targetClass || resData.target_class || announcement.targetClass,
+          channels: Array.isArray(resData.channels) ? resData.channels : (announcement.channels || ['Email']),
+          sentAt: resData.sentAt || resData.sent_at || resData.created_at || new Date().toISOString(),
+          sentBy: resData.sentBy || resData.sent_by || announcement.sentBy || 'Admin',
+        };
+
+        const list = LocalStorageSync.get<Announcement[]>("edu_trio_announcements") || [];
+        LocalStorageSync.set("edu_trio_announcements", [newAnn, ...list]);
+        return newAnn;
+      }
+    } catch (error) {
+      console.warn('[CommunicationApi.sendAnnouncement] POST /api/broadcast API call failed, using local storage fallback', error);
     }
-    return await ApiService.post<Announcement>('/communication/announcements', announcement);
+
+    const list = LocalStorageSync.get<Announcement[]>("edu_trio_announcements") || MOCK_ANNOUNCEMENTS;
+    const newAnn: Announcement = {
+      id: `ANN${Date.now()}`,
+      title: announcement.title || '',
+      message: announcement.message || '',
+      targetAudience: announcement.targetAudience || 'All',
+      targetClass: announcement.targetClass,
+      channels: announcement.channels || [],
+      sentAt: new Date().toISOString(),
+      sentBy: announcement.sentBy || 'Admin'
+    };
+
+    const updated = [newAnn, ...list];
+    LocalStorageSync.set("edu_trio_announcements", updated);
+    return newAnn;
   },
 
   scheduleMeeting: async (meeting: Partial<Meeting>): Promise<Meeting> => {
-    if (USE_MOCK) {
-      await delay(600);
+    try {
+      return await ApiService.post<Meeting>('/communication/meetings', meeting);
+    } catch {
       const list = LocalStorageSync.get<Meeting[]>("edu_trio_meetings") || [];
       const newMtg: Meeting = {
         id: `MTG${Date.now()}`,
@@ -152,11 +274,11 @@ export const CommunicationApi = {
         location: meeting.location,
         organizer: meeting.organizer || 'Admin'
       };
-      
+
       const updated = [...list, newMtg];
       LocalStorageSync.set("edu_trio_meetings", updated);
       return newMtg;
     }
-    return await ApiService.post<Meeting>('/communication/meetings', meeting);
   }
 };
+

@@ -72,16 +72,31 @@ export function useLoginForm() {
         deviceId
       });
 
-      const token = response?.token || response?.accessToken || response?.authToken || response?.data?.token;
+      const token = 
+        response?.token || 
+        response?.accessToken || 
+        response?.authToken || 
+        response?.data?.token || 
+        response?.data?.accessToken ||
+        response?.data?.authToken ||
+        response?.result?.token || 
+        response?.result?.accessToken ||
+        response?.result?.authToken ||
+        (typeof response?.result === 'string' ? response.result : undefined);
 
       if (token) {
         setRememberedCredentials(identifier, formData.rememberMe);
-        const userObj = response?.user || response?.data?.user;
+        const userObj = 
+          response?.user || 
+          response?.data?.user || 
+          response?.result?.user || 
+          (typeof response?.result === 'object' && !response?.result?.token ? response?.result : undefined);
+
         setSession(token, userObj, formData.rememberMe);
         navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
       } else {
         setErrors({
-          submit: response?.message || 'Login failed. Invalid Mobile number / MSISDN or Password.'
+          submit: response?.message || (response as any)?.error || 'Login failed. Invalid Mobile number / MSISDN or Password.'
         });
       }
     } catch (err: any) {

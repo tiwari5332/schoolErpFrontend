@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,63 +8,96 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   User, Mail, Phone, MapPin, Shield, Save,
-  Building, Calendar, Key, Camera, CheckCircle2
+  Building, Calendar, Key, Camera, CheckCircle2,
+  AlertCircle, RefreshCw, Loader2
 } from "lucide-react";
-import { LocalStorageSync } from "@/services/LocalStorageSync";
-
-interface AdminProfile {
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  schoolName: string;
-  address: string;
-  joinDate: string;
-}
-
-const DEFAULT_PROFILE: AdminProfile = {
-  name: 'John Anderson',
-  email: 'john.anderson@edutrio.edu',
-  phone: '+91 98765 43210',
-  role: 'Super Admin',
-  schoolName: 'EduTrio International School',
-  address: '123 Education Street, Knowledge City',
-  joinDate: '2024-01-15',
-};
+import { profileService, AdminProfileDTO } from '@/api/services/profileService';
+import { toast } from '@/components/ui/Toast';
 
 export function ProfileView() {
-  const [profile, setProfile] = useState<AdminProfile>(DEFAULT_PROFILE);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<AdminProfile>(DEFAULT_PROFILE);
-  const [saved, setSaved] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Password change
+  // 1. Fetch Profile from API
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<AdminProfileDTO>({
+    queryKey: ['admin-profile'],
+    queryFn: () => profileService.getProfile(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<AdminProfileDTO>({
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    schoolName: '',
+    address: '',
+    joinDate: '',
+  });
+
+  // Sync edit form when profile data loads
+  useEffect(() => {
+    if (profile) {
+      setEditForm(profile);
+    }
+  }, [profile]);
+
+  // 2. Mutation to update profile via API
+  const updateProfileMutation = useMutation({
+    mutationFn: (payload: any) => profileService.updateProfile(payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['admin-profile'], updated);
+      setIsEditing(false);
+      toast.success('Profile updated successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to update profile');
+    },
+  });
+
+  // 3. Password change state & mutation
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
 
-  useEffect(() => {
-    const savedProfile = LocalStorageSync.get<AdminProfile>('edu_trio_admin_profile');
-    if (savedProfile) {
-      setProfile(savedProfile);
-      setEditForm(savedProfile);
-    }
-  }, []);
+  const changePasswordMutation = useMutation({
+    mutationFn: (payload: { currentPassword: string; newPassword: string }) =>
+      profileService.changePassword(payload),
+    onSuccess: () => {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
+      setPasswordSaved(true);
+      toast.success('Password changed successfully');
+      setTimeout(() => setPasswordSaved(false), 3000);
+    },
+    onError: (err: any) => {
+      setPasswordError(err?.message || 'Failed to change password. Please verify your current password.');
+      toast.error(err?.message || 'Password update failed');
+    },
+  });
 
   const handleSaveProfile = () => {
-    setProfile(editForm);
-    LocalStorageSync.set('edu_trio_admin_profile', editForm);
-    setIsEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (!editForm.name.trim()) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+    updateProfileMutation.mutate(editForm);
   };
 
   const handleChangePassword = () => {
     setPasswordError('');
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('All fields are required');
+      setPasswordError('All password fields are required');
       return;
     }
     if (newPassword.length < 6) {
@@ -71,17 +105,53 @@ export function ProfileView() {
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError('New passwords do not match');
       return;
     }
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setPasswordSaved(true);
-    setTimeout(() => setPasswordSaved(false), 2000);
+
+    changePasswordMutation.mutate({
+      currentPassword,
+      newPassword,
+    });
   };
 
-  const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+  if (isLoading) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-pulse">
+        <div className="h-8 w-48 bg-slate-200 rounded-lg" />
+        <div className="h-64 bg-slate-100 rounded-3xl" />
+        <div className="h-48 bg-slate-100 rounded-3xl" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-6 bg-rose-50 border border-rose-200 rounded-3xl text-center space-y-4">
+        <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
+        <div>
+          <h3 className="text-base font-bold text-rose-800">Failed to load profile data from API</h3>
+          <p className="text-xs text-rose-600 mt-1">{(error as any)?.message || 'Something went wrong while connecting to the server.'}</p>
+        </div>
+        <Button
+          onClick={() => refetch()}
+          className="bg-rose-600 hover:bg-rose-700 text-white gap-2 h-9 px-4 text-xs font-semibold rounded-xl"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          <span>Retry Loading Profile</span>
+        </Button>
+      </div>
+    );
+  }
+
+  const currentProfile = profile || editForm;
+  const initials = (currentProfile.name || 'Admin')
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-fade-in">
@@ -110,16 +180,16 @@ export function ProfileView() {
               </div>
             </div>
             <div className="text-center sm:text-left">
-              <h3 className="text-2xl font-bold">{profile.name}</h3>
-              <p className="text-white/80 text-sm mt-0.5">{profile.email}</p>
+              <h3 className="text-2xl font-bold">{currentProfile.name}</h3>
+              <p className="text-white/80 text-sm mt-0.5">{currentProfile.email}</p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                   <Shield className="h-3 w-3 mr-1" />
-                  {profile.role}
+                  {currentProfile.role || 'Super Admin'}
                 </Badge>
                 <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                   <Building className="h-3 w-3 mr-1" />
-                  {profile.schoolName}
+                  {currentProfile.schoolName || 'EduTrio International Academy'}
                 </Badge>
               </div>
             </div>
@@ -127,27 +197,21 @@ export function ProfileView() {
         </div>
 
         <CardContent className="p-6">
-          {saved && (
-            <div className="mb-4 flex items-center gap-2 bg-emerald-50 text-emerald-700 p-3 rounded-xl border border-emerald-200 text-sm font-medium animate-fade-in">
-              <CheckCircle2 className="h-4 w-4" />
-              Profile updated successfully!
-            </div>
-          )}
-
           <div className="flex items-center justify-between mb-5">
             <h4 className="text-base font-bold text-slate-800">Personal Information</h4>
             <Button
-              variant={isEditing ? "outline" : "default"}
+              variant={isEditing ? 'outline' : 'default'}
               onClick={() => {
                 if (isEditing) {
-                  setEditForm(profile);
+                  setEditForm(currentProfile);
                 }
                 setIsEditing(!isEditing);
               }}
               size="sm"
-              className={isEditing
-                ? "border-slate-200 text-slate-600"
-                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              className={
+                isEditing
+                  ? 'border-slate-200 text-slate-600'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }
             >
               {isEditing ? 'Cancel' : 'Edit Profile'}
@@ -166,7 +230,9 @@ export function ProfileView() {
                   className="h-10"
                 />
               ) : (
-                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.name}</p>
+                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                  {currentProfile.name}
+                </p>
               )}
             </div>
 
@@ -182,7 +248,9 @@ export function ProfileView() {
                   className="h-10"
                 />
               ) : (
-                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.email}</p>
+                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                  {currentProfile.email}
+                </p>
               )}
             </div>
 
@@ -197,7 +265,9 @@ export function ProfileView() {
                   className="h-10"
                 />
               ) : (
-                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.phone}</p>
+                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                  {currentProfile.phone}
+                </p>
               )}
             </div>
 
@@ -205,7 +275,9 @@ export function ProfileView() {
               <Label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                 <Shield className="h-3.5 w-3.5" /> Role
               </Label>
-              <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.role}</p>
+              <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                {currentProfile.role || 'Super Admin'}
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -219,7 +291,9 @@ export function ProfileView() {
                   className="h-10"
                 />
               ) : (
-                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.schoolName}</p>
+                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                  {currentProfile.schoolName || 'EduTrio International Academy'}
+                </p>
               )}
             </div>
 
@@ -227,7 +301,9 @@ export function ProfileView() {
               <Label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" /> Joined Date
               </Label>
-              <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.joinDate}</p>
+              <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                {currentProfile.joinDate || '2024-01-15'}
+              </p>
             </div>
 
             <div className="space-y-1.5 md:col-span-2">
@@ -241,15 +317,31 @@ export function ProfileView() {
                   className="h-10"
                 />
               ) : (
-                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">{profile.address}</p>
+                <p className="text-sm font-medium text-slate-800 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-100">
+                  {currentProfile.address || '123 Knowledge Park, Edu City'}
+                </p>
               )}
             </div>
           </div>
 
           {isEditing && (
             <div className="mt-5 flex justify-end">
-              <Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6">
-                <Save className="h-4 w-4 mr-2" /> Save Changes
+              <Button
+                onClick={handleSaveProfile}
+                disabled={updateProfileMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 gap-2"
+              >
+                {updateProfileMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving Changes...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           )}
@@ -264,7 +356,7 @@ export function ProfileView() {
             </div>
             Change Password
           </CardTitle>
-          <CardDescription>Update your account password for better security</CardDescription>
+          <CardDescription>Update your account password via secure API</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {passwordSaved && (
@@ -275,6 +367,7 @@ export function ProfileView() {
           )}
           {passwordError && (
             <div className="flex items-center gap-2 bg-rose-50 text-rose-700 p-3 rounded-xl border border-rose-200 text-sm font-medium animate-fade-in">
+              <AlertCircle className="h-4 w-4" />
               {passwordError}
             </div>
           )}
@@ -310,8 +403,22 @@ export function ProfileView() {
               />
             </div>
           </div>
-          <Button onClick={handleChangePassword} className="bg-rose-600 hover:bg-rose-700 text-white">
-            <Key className="h-4 w-4 mr-2" /> Update Password
+          <Button
+            onClick={handleChangePassword}
+            disabled={changePasswordMutation.isPending}
+            className="bg-rose-600 hover:bg-rose-700 text-white gap-2"
+          >
+            {changePasswordMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Updating Password...
+              </>
+            ) : (
+              <>
+                <Key className="h-4 w-4" />
+                Update Password
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>

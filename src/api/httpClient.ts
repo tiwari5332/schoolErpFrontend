@@ -16,7 +16,7 @@ export const httpClient: AxiosInstance = axios.create({
 
 /**
  * Request Interceptor:
- * Automatically attaches Authorization header if token exists in storage.
+ * Automatically attaches Authorization header and X-Session-Id header.
  */
 httpClient.interceptors.request.use(
   (config) => {
@@ -25,8 +25,14 @@ httpClient.interceptors.request.use(
       if (token) {
         config.headers.set('Authorization', token.startsWith('Bearer ') ? token : `Bearer ${token}`);
       }
+
+      // Attach selected academic session ID for session-scoped data isolation
+      const selectedSessionId = useAppStore.getState().selectedSessionId;
+      if (selectedSessionId) {
+        config.headers.set('X-Session-Id', selectedSessionId);
+      }
     } catch (e) {
-      console.warn('[httpClient] Error accessing storage for token attachment', e);
+      console.warn('[httpClient] Error accessing storage for request headers', e);
     }
     return config;
   },

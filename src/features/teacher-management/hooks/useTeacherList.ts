@@ -9,7 +9,7 @@ import {
 import { useUIFilters } from '../../../store';
 
 export function useTeacherList() {
-  const { searchQuery, setSearchQuery } = useUIFilters();
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [activeTab, setActiveTab] = useState('employee-list');
 

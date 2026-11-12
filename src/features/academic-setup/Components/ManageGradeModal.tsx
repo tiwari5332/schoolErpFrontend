@@ -64,12 +64,11 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
     try {
       setIsSubmitting(true);
       setApiError(null);
+      console.log("testsś")
       await onSave({
         id: gradeData?.id,
-        grade: gradeName.trim(),
-        departmentId: departmentId || 'unassigned',
+        name: gradeName.trim(),
         sequenceOrder: Math.max(1, Number(sequenceOrder) || 1),
-        stream,
         sections: gradeData?.sections || []
       });
       onClose();
@@ -99,15 +98,15 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-3">
           <div className="grid gap-2">
             <Label htmlFor="gradeName" className="text-sm font-medium text-slate-700">
               Grade Name <span className="text-rose-500 font-bold">*</span>
             </Label>
-            <Input 
+            <Input
               id="gradeName"
-              placeholder="e.g. Grade 10" 
+              placeholder="e.g. Grade 10"
               value={gradeName}
               onChange={(e) => setGradeName(e.target.value)}
               className="border-slate-200 focus:border-cyan-400"
@@ -157,8 +156,8 @@ export function ManageGradeModal({ isOpen, onClose, onSave, gradeData, departmen
           <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="border-slate-200 text-slate-600 hover:bg-slate-50">
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={!isFormValid || isSubmitting}
             className="gradient-cyan text-white shadow-colored-cyan hover:scale-[1.02] transition-transform flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >

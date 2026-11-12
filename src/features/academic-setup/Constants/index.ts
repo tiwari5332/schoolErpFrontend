@@ -43,7 +43,6 @@ export interface Section {
 
 export interface ClassGroup {
   id: string;
-  grade: string; // e.g., 'Grade 10', 'Grade 9'
   name?: string;
   departmentId?: string | null;
   sequenceOrder?: number;

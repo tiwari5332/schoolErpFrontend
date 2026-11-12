@@ -44,7 +44,7 @@ export function useAcademicSetup() {
   const [apiErrorNotice, setApiErrorNotice] = useState<string | null>(null);
 
   const [academicYears] = useState<AcademicYear[]>(MOCK_ACADEMIC_YEARS);
-  
+
   // Configuring For (local setup year) vs Global Active Operating Year
   const [configuringYearId, setConfiguringYearId] = useState<string>('ay_2024_25');
 
@@ -53,11 +53,11 @@ export function useAcademicSetup() {
   const [students, setStudents] = useState<SetupStudent[]>([]);
   const [setupTeachers, setSetupTeachers] = useState<SetupTeacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [subjects, setSubjects] = useState<SetupSubject[]>([]);
   const [classSubjects, setClassSubjects] = useState<Record<string, string[]>>({});
   const [subjectMappings, setSubjectMappings] = useState<Record<string, Record<string, string>>>({});
- 
+
   // Modals & Drawers
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
@@ -66,9 +66,9 @@ export function useAcademicSetup() {
 
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState<ClassGroup | null>(null);
-  
+
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
-  const [editingSection, setEditingSection] = useState<{classGrpId: string, section: Section | null} | null>(null);
+  const [editingSection, setEditingSection] = useState<{ classGrpId: string, section: Section | null } | null>(null);
 
   const [isBulkSectionModalOpen, setIsBulkSectionModalOpen] = useState(false);
   const [bulkTargetClassGrpId, setBulkTargetClassGrpId] = useState<string>('');
@@ -186,27 +186,23 @@ export function useAcademicSetup() {
 
       const payload: Partial<ClassGroup> = {
         ...gradeData,
-        grade: gradeData.grade || '',
-        departmentId: targetDeptId,
+        name: gradeData.name || '',
         sequenceOrder: sanitizedSeq,
-        stream: gradeData.stream || 'General',
       };
 
       const savedGrade = await saveClassMutation.mutateAsync(payload);
 
       if (gradeData.id) {
-        setClasses(prev => prev.map(c => c.id === savedGrade.id || c.id === gradeData.id ? { 
-          ...c, 
-          ...savedGrade, 
-          departmentId: targetDeptId, 
-          sequenceOrder: sanitizedSeq 
+        setClasses(prev => prev.map(c => c.id === savedGrade.id || c.id === gradeData.id ? {
+          ...c,
+          ...savedGrade,
+          sequenceOrder: sanitizedSeq
         } as ClassGroup : c));
         toast.success("Grade updated successfully!");
       } else {
         const newClassItem: ClassGroup = {
           id: savedGrade.id || `class_${Date.now()}`,
-          grade: savedGrade.grade || gradeData.grade || '',
-          departmentId: targetDeptId,
+          name: gradeData.name || gradeData.name || '',
           sequenceOrder: sanitizedSeq,
           stream: gradeData.stream || 'General',
           sections: savedGrade.sections || []
@@ -258,10 +254,10 @@ export function useAcademicSetup() {
             const sectionsList = c.sections || [];
             return {
               ...c,
-              sections: sectionsList.map(s => s.id === existingSection.id ? { 
-                ...s, 
-                ...section, 
-                classTeacherId: section.classTeacherId === 'unassigned' ? null : (section.classTeacherId ?? s.classTeacherId) 
+              sections: sectionsList.map(s => s.id === existingSection.id ? {
+                ...s,
+                ...section,
+                classTeacherId: section.classTeacherId === 'unassigned' ? null : (section.classTeacherId ?? s.classTeacherId)
               } as Section : s)
             };
           }
@@ -277,23 +273,41 @@ export function useAcademicSetup() {
       }
     } else {
       // CREATE SECTION API CALL
-      const sectionName = section.name || 'A';
+      const sectionName = section.name || 'Section A';
       try {
         const apiRes = await createSectionMutation.mutateAsync({
           gradeId: classGrpId,
           academicYearId: configuringYearId,
-          name: [sectionName],
-          classTeacherId: section.classTeacherId === 'unassigned' ? null : (section.classTeacherId || null),
-          capacity: Number(section.capacity) || 30,
+          name: sectionName,
+          capacity: Number(section.capacity) || 45,
         });
 
-        const createdSectionId = apiRes?.id || (Array.isArray(apiRes) && apiRes[0]?.id) || `SEC_${Date.now()}`;
+        const createdSectionId = apiRes?.id || apiRes?.data?.id || (Array.isArray(apiRes) && apiRes[0]?.id) || `SEC_${Date.now()}`;
+        const selectedTeacherId = section.classTeacherId === 'unassigned' ? null : (section.classTeacherId || null);
+
+        // If a class teacher was selected, update the section with the assigned teacher
+        if (selectedTeacherId && createdSectionId) {
+          try {
+            await updateSectionMutation.mutateAsync({
+              sectionId: createdSectionId,
+              payload: {
+                gradeId: classGrpId,
+                academicYearId: configuringYearId,
+                name: sectionName,
+                capacity: Number(section.capacity) || 45,
+                classTeacherId: selectedTeacherId,
+              }
+            });
+          } catch (teacherErr) {
+            console.warn('[useAcademicSetup] Assigning class teacher to created section failed:', teacherErr);
+          }
+        }
 
         const newSection: Section = {
           id: createdSectionId,
           name: sectionName,
-          capacity: Number(section.capacity) || 30,
-          classTeacherId: section.classTeacherId === 'unassigned' ? null : (section.classTeacherId || null),
+          capacity: Number(section.capacity) || 45,
+          classTeacherId: selectedTeacherId,
           studentIds: []
         };
 
@@ -337,25 +351,33 @@ export function useAcademicSetup() {
     if (sectionNames.length > 0) {
       // BULK CREATE SECTION API CALL
       try {
-        await createSectionMutation.mutateAsync({
-          gradeId: classGrpId,
-          academicYearId: configuringYearId,
-          name: sectionNames,
-          capacity: defaultCapacity || 30,
-        });
+        const results = await Promise.all(
+          sectionNames.map(name =>
+            createSectionMutation.mutateAsync({
+              gradeId: classGrpId,
+              academicYearId: configuringYearId,
+              name,
+              capacity: defaultCapacity || 45,
+            })
+          )
+        );
 
         setClasses(prev => prev.map(c => {
           if (c.id === classGrpId) {
             const existingNames = (c.sections || []).map(s => s.name.toUpperCase());
             const newSections: Section[] = sectionNames
               .filter(name => !existingNames.includes(name.toUpperCase()))
-              .map(name => ({
-                id: `SEC_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-                name,
-                capacity: defaultCapacity || 30,
-                classTeacherId: null,
-                studentIds: []
-              }));
+              .map((name, index) => {
+                const res = results[index];
+                const resId = res?.id || res?.data?.id;
+                return {
+                  id: resId || `SEC_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                  name,
+                  capacity: defaultCapacity || 45,
+                  classTeacherId: null,
+                  studentIds: []
+                };
+              });
             return { ...c, sections: [...(c.sections || []), ...newSections] };
           }
           return c;

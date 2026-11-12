@@ -5,9 +5,14 @@ import { EduTrioLogo } from "../components/EduTrioLogo.tsx";
 import { Badge } from "../components/ui/badge.tsx";
 import { Sparkles } from "lucide-react";
 
-const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  return <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+interface AuthLayoutProps {
+  children: React.ReactNode;
+  wide?: boolean;
+}
+
+const AuthLayout = ({ children, wide = false }: AuthLayoutProps) => {
+  return <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 py-12">
+      <div className={`w-full ${wide ? 'max-w-7xl' : 'max-w-6xl'} grid grid-cols-1 lg:grid-cols-2 gap-8 items-center`}>
       <div className="hidden lg:flex flex-col justify-center space-y-8">
           <div className="space-y-6">
             <div className="animate-float">

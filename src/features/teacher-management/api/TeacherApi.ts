@@ -1,5 +1,5 @@
 import ApiService from '../../../services/ApiService';
-import teacherService from '../../../api/services/teacherService';
+import teacherService, { UpdateTeacherPayload } from '../../../api/services/teacherService';
 import { 
   Teacher,
   TeacherPerformance,
@@ -18,6 +18,10 @@ export const TeacherApi = {
   getTeacherById: async (id: string): Promise<Teacher | undefined> => {
     const teacher = await teacherService.getTeacherById(id);
     return teacher as any;
+  },
+
+  updateTeacher: async (id: string, updates: Partial<UpdateTeacherPayload | Teacher>): Promise<any> => {
+    return teacherService.updateTeacher(id, updates);
   },
 
   getPerformanceData: async (teacherId: string): Promise<TeacherPerformance | null> => {

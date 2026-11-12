@@ -4,25 +4,29 @@ import { useShallow } from 'zustand/react/shallow';
 import { AppStoreState } from './types';
 import { createUISlice } from './slices/uiSlice';
 import { createAuthSlice } from './slices/authSlice';
+import { createSessionSlice } from './slices/sessionSlice';
 
 /**
  * Unified Zustand Store using Slice Pattern.
- * Merges UI Slice (ephemeral UI state) and Auth Slice (persisted session).
+ * Merges UI Slice (ephemeral UI state), Auth Slice (persisted session), and Session Slice (academic session).
  */
 export const useAppStore = create<AppStoreState>()(
   persist(
     (...args) => ({
       ...createUISlice(...args),
       ...createAuthSlice(...args),
+      ...createSessionSlice(...args),
     }),
     {
       name: 'edutrio_app_store',
       storage: createJSONStorage(() => localStorage),
-      // Persist auth session, theme mode, and default UI filter preferences in localStorage
+      // Persist auth session, academic session, theme mode, and default UI filter preferences in localStorage
       partialize: (state) => ({
         token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        selectedSessionId: state.selectedSessionId,
+        selectedSession: state.selectedSession,
         themeMode: state.themeMode,
         searchQuery: state.searchQuery,
         selectedGrade: state.selectedGrade,
@@ -64,6 +68,16 @@ export const useAuthSession = () =>
       isAuthenticated: state.isAuthenticated,
       setSession: state.setSession,
       clearSession: state.clearSession,
+    }))
+  );
+
+export const useSessionStore = () =>
+  useAppStore(
+    useShallow((state) => ({
+      selectedSessionId: state.selectedSessionId,
+      selectedSession: state.selectedSession,
+      setSelectedSessionId: state.setSelectedSessionId,
+      setSelectedSession: state.setSelectedSession,
     }))
   );
 

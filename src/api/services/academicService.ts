@@ -16,8 +16,7 @@ export interface DepartmentPayload {
 export interface CreateSectionPayload {
   gradeId: string;
   academicYearId: string;
-  name: string[];
-  classTeacherId?: string | null;
+  name: string;
   capacity: number;
 }
 
@@ -129,8 +128,7 @@ export const academicService = {
    */
   async saveClass(cls: Partial<ClassGroup>): Promise<ClassGroup> {
     const payload = {
-      grade: cls.grade || '',
-      departmentId: cls.departmentId || null,
+      name: cls.name || '',
       sequenceOrder: Math.max(1, Number(cls.sequenceOrder) || 1),
       stream: cls.stream || 'General',
     };

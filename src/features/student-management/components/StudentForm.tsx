@@ -243,37 +243,6 @@ export function StudentForm({ student, onClose, onSave }: StudentFormProps) {
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Top Header Card */}
-        <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="h-9 gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">
-                {isEditMode ? 'EDIT STUDENT' : 'CREATE STUDENT'}
-              </h1>
-              <p className="text-xs text-slate-500">
-                Complete student onboarding step by step.
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-9 px-4 text-slate-600 hover:text-slate-900"
-          >
-            Cancel
-          </Button>
-        </div>
-
         {/* Universal Top Stepper Header (01, 02, 03 Grid Stepper matching project UX) */}
         <FormStepper
           steps={STEP_ITEMS}

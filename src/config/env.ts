@@ -5,8 +5,9 @@
  */
 
 const getApiBaseUrl = (): string => {
-  const metaEnv = (import.meta as any).env || {};
-  const url = metaEnv.VITE_API_BASE_URL || metaEnv.REACT_APP_API_BASE_URL;
+  const metaEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {};
+  const procEnv = (typeof process !== 'undefined' && process.env) || {};
+  const url = metaEnv.VITE_API_BASE_URL || metaEnv.REACT_APP_API_BASE_URL || procEnv.VITE_API_BASE_URL || procEnv.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   if (!url || typeof url !== 'string' || url.trim() === '') {
     const errorMsg =

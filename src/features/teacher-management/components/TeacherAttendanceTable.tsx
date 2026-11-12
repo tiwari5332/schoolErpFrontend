@@ -30,10 +30,13 @@ export function TeacherAttendanceTable({ teachers }: TeacherAttendanceTableProps
   // We'll track it using a composite key of `${teacherId}-${date}`
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, AttendanceStatus>>({});
 
-  const filteredTeachers = teachers.filter(teacher =>
-    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTeachers = (teachers || []).filter(teacher => {
+    if (!teacher) return false;
+    const name = String(teacher.name || '');
+    const id = String(teacher.id || '');
+    return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      id.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -112,7 +115,13 @@ export function TeacherAttendanceTable({ teachers }: TeacherAttendanceTableProps
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={teacher.avatar} />
                           <AvatarFallback className="gradient-indigo text-white font-medium text-xs">
-                            {teacher.name.split(' ').map(n => n[0]).join('')}
+                            {(teacher.name || 'Staff')
+                              .split(' ')
+                              .filter(Boolean)
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2) || 'T'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="space-y-0.5">
@@ -123,7 +132,9 @@ export function TeacherAttendanceTable({ teachers }: TeacherAttendanceTableProps
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-200 font-normal">
-                        {teacher.department}
+                        {typeof teacher.department === 'object' && teacher.department
+                          ? (teacher.department as any).name || 'General'
+                          : String(teacher.department || 'General')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">

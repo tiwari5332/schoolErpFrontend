@@ -17,8 +17,9 @@ export interface FormStepperProps {
 }
 
 /**
- * Top Horizontal Stepper Header Bar matching reference layout.
- * Displays large numbers (01, 02, ...), title, completed checkmarks, and accent bottom line.
+ * Horizontal Stepper matching the reference "Add New Customer" design.
+ * Each step = icon-circle (left) + label (right), connected by animated lines.
+ * Active step: dark filled circle. Completed: filled with check. Pending: outline.
  */
 export const FormStepper: React.FC<FormStepperProps> = ({
   steps,
@@ -26,108 +27,81 @@ export const FormStepper: React.FC<FormStepperProps> = ({
   onStepClick,
   className
 }) => {
-  const getGridColsClass = (count: number) => {
-    switch (count) {
-      case 1:
-        return "grid-cols-1";
-      case 2:
-        return "grid-cols-1 sm:grid-cols-2";
-      case 3:
-        return "grid-cols-1 sm:grid-cols-3";
-      case 4:
-        return "grid-cols-2 sm:grid-cols-4";
-      case 5:
-        return "grid-cols-2 sm:grid-cols-5";
-      case 6:
-        return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6";
-      default:
-        return "grid-cols-2 sm:grid-cols-4";
-    }
-  };
-
   return (
-    <div className={cn("w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden", className)}>
-      <div
-        className={cn(
-          "grid divide-y sm:divide-y-0 sm:divide-x divide-slate-200/80",
-          getGridColsClass(steps.length)
-        )}
-      >
+    <div
+      className={cn(
+        'w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm px-4 sm:px-8 py-4',
+        className
+      )}
+    >
+      {/* Stepper row: flex, items centered, nodes separated by flex-1 connectors */}
+      <div className="flex items-center w-full">
         {steps.map((step, idx) => {
           const isCompleted = idx < currentStep;
-          const isCurrent = idx === currentStep;
-          const stepNumStr = String(idx + 1).padStart(2, '0');
+          const isCurrent   = idx === currentStep;
+          const isLast      = idx === steps.length - 1;
+          const StepIcon    = step.icon;
 
           return (
-            <button
-              key={step.id}
-              type="button"
-              onClick={() => onStepClick?.(idx)}
-              className={cn(
-                "relative p-3.5 sm:p-4 text-left flex flex-col justify-between transition-all duration-200 group cursor-pointer focus:outline-none min-h-[72px]",
-                isCurrent
-                  ? "bg-indigo-50/40"
-                  : isCompleted
-                  ? "bg-white hover:bg-slate-50/60"
-                  : "bg-white hover:bg-slate-50/40"
-              )}
-            >
-              {/* Content Header: Number + Text */}
-              <div className="flex items-start justify-between gap-2 w-full">
-                <div className="flex items-center gap-2.5 overflow-hidden">
-                  <span
-                    className={cn(
-                      "text-xl sm:text-2xl font-extrabold tracking-tight transition-colors duration-200 shrink-0",
-                      isCurrent
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
-                        : isCompleted
-                        ? "text-emerald-500"
-                        : "text-slate-300 group-hover:text-slate-400"
-                    )}
-                  >
-                    {stepNumStr}
-                  </span>
-
-                  <div className="min-w-0">
-                    <h4
-                      className={cn(
-                        "text-xs sm:text-sm font-bold truncate transition-colors",
-                        isCurrent
-                          ? "text-indigo-950"
-                          : isCompleted
-                          ? "text-slate-900"
-                          : "text-slate-400 group-hover:text-slate-600"
-                      )}
-                    >
-                      {step.label}
-                    </h4>
-                    {step.subtitle && (
-                      <p className="text-[11px] text-slate-400 truncate font-medium hidden sm:block">
-                        {step.subtitle}
-                      </p>
-                    )}
-                  </div>
+            <React.Fragment key={step.id}>
+              {/* Step node: icon circle + label inline */}
+              <button
+                type="button"
+                onClick={() => onStepClick?.(idx)}
+                className="flex items-center gap-2 shrink-0 focus:outline-none group"
+              >
+                {/* Icon Circle */}
+                <div
+                  className={cn(
+                    'h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 shrink-0',
+                    isCurrent
+                      ? 'bg-[#2D3A8C] text-white shadow-md'
+                      : isCompleted
+                      ? 'bg-[#2D3A8C] text-white'
+                      : 'bg-white text-slate-400 border-2 border-slate-200'
+                  )}
+                >
+                  {isCompleted ? (
+                    <Check className="h-4 w-4 stroke-[2.5]" />
+                  ) : StepIcon ? (
+                    <StepIcon className="h-4 w-4" />
+                  ) : (
+                    <span className="text-xs font-bold">{idx + 1}</span>
+                  )}
                 </div>
 
-                {isCompleted && (
-                  <div className="h-5 w-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-                    <Check className="h-3 w-3 text-emerald-600 stroke-[3]" />
-                  </div>
-                )}
-              </div>
+                {/* Label + subtitle */}
+                <div className="text-left">
+                  <p
+                    className={cn(
+                      'text-sm font-semibold leading-tight whitespace-nowrap transition-colors',
+                      isCurrent
+                        ? 'text-slate-900'
+                        : isCompleted
+                        ? 'text-slate-600'
+                        : 'text-slate-400'
+                    )}
+                  >
+                    {step.label}
+                  </p>
+                  {step.subtitle && (
+                    <p className="text-[10px] text-slate-400 leading-tight whitespace-nowrap hidden sm:block">
+                      {step.subtitle}
+                    </p>
+                  )}
+                </div>
+              </button>
 
-              {/* Bottom Accent Line Indicator */}
-              <div
-                className={cn(
-                  "absolute bottom-0 left-0 right-0 h-1 transition-all duration-300",
-                  isCurrent
-                    ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
-                    : isCompleted
-                    ? "bg-emerald-500"
-                    : "bg-slate-100 group-hover:bg-slate-200"
-                )}
-              />
-            </button>
+              {/* Connector line between steps */}
+              {!isLast && (
+                <div className="flex-1 mx-3 h-[2px] rounded-full overflow-hidden bg-slate-200 min-w-[16px]">
+                  <div
+                    className="h-full bg-[#2D3A8C] transition-all duration-500 ease-out"
+                    style={{ width: isCompleted ? '100%' : '0%' }}
+                  />
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>

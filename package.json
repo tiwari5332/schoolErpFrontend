@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npx esbuild tests/sessionSwitcher.test.ts --bundle --platform=node --format=esm --outfile=tests/sessionSwitcher.bundle.mjs && npx esbuild tests/dashboard.test.ts --bundle --platform=node --format=esm --outfile=tests/dashboard.bundle.mjs && node --test tests/sessionSwitcher.bundle.mjs tests/dashboard.bundle.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../queryKeys';
-import { teacherService, TeacherDTO, TeacherFilterParams, CreateTeacherPayload } from '../services/teacherService';
+import { teacherService, TeacherDTO, TeacherFilterParams, CreateTeacherPayload, UpdateTeacherPayload } from '../services/teacherService';
 
 const EMPTY_ARRAY: TeacherDTO[] = [];
 

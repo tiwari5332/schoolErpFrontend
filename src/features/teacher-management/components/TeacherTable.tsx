@@ -62,61 +62,89 @@ export function TeacherTable({ teachers = [], onViewTeacher, onEditTeacher, onDe
                 </TableRow>
               ) : (
                 paginatedTeachers.map((teacher) => (
-                  <TableRow key={teacher.id} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
+                  <TableRow key={teacher.id || Math.random()} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={teacher.avatar} />
                           <AvatarFallback className="gradient-indigo text-white font-medium text-xs">
-                            {teacher.name.split(' ').map(n => n[0]).join('')}
+                            {(teacher.name || 'Staff')
+                              .split(' ')
+                              .filter(Boolean)
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2) || 'T'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="space-y-0.5">
-                          <div className="font-medium text-slate-900 text-xs">{teacher.name}</div>
-                          <div className="text-[11px] text-slate-500">{teacher.id} • {teacher.email}</div>
+                          <div className="font-medium text-slate-900 text-xs">{teacher.name || 'Unnamed Teacher'}</div>
+                          <div className="text-[11px] text-slate-500">{teacher.id || '—'} • {teacher.email || '—'}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs font-medium">
-                        {teacher.department}
+                        {typeof teacher.department === 'object' && teacher.department
+                          ? (teacher.department as any).name || 'General'
+                          : String(teacher.department || 'General')}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {(teacher.subjects || []).slice(0, 2).map((subject, index) => (
-                          <Badge key={index} variant="outline" className="text-[11px] bg-slate-50 text-slate-700 border-slate-200">
-                            {subject}
-                          </Badge>
-                        ))}
-                        {(teacher.subjects || []).length > 2 && (
-                          <Badge variant="outline" className="text-[11px] bg-slate-50 text-slate-700 border-slate-200">
-                            +{(teacher.subjects || []).length - 2}
-                          </Badge>
-                        )}
-                      </div>
+                      {(() => {
+                        const subs: string[] = Array.isArray(teacher.subjects)
+                          ? teacher.subjects
+                          : typeof teacher.subjects === 'string'
+                          ? (teacher.subjects as string).split(',').map(s => s.trim()).filter(Boolean)
+                          : [];
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {subs.slice(0, 2).map((subject, index) => (
+                              <Badge key={index} variant="outline" className="text-[11px] bg-slate-50 text-slate-700 border-slate-200">
+                                {subject}
+                              </Badge>
+                            ))}
+                            {subs.length > 2 && (
+                              <Badge variant="outline" className="text-[11px] bg-slate-50 text-slate-700 border-slate-200">
+                                +{subs.length - 2}
+                              </Badge>
+                            )}
+                            {subs.length === 0 && <span className="text-[11px] text-slate-400">—</span>}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {(teacher.classes || []).slice(0, 2).map((cls, index) => (
-                          <Badge key={index} variant="outline" className="text-[11px] bg-purple-50 text-purple-700 border-purple-200">
-                            {cls}
-                          </Badge>
-                        ))}
-                        {(teacher.classes || []).length > 2 && (
-                          <Badge variant="outline" className="text-[11px] bg-purple-50 text-purple-700 border-purple-200">
-                            +{(teacher.classes || []).length - 2}
-                          </Badge>
-                        )}
-                      </div>
+                      {(() => {
+                        const clsList: string[] = Array.isArray(teacher.classes)
+                          ? teacher.classes
+                          : typeof teacher.classes === 'string'
+                          ? (teacher.classes as string).split(',').map(c => c.trim()).filter(Boolean)
+                          : [];
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {clsList.slice(0, 2).map((cls, index) => (
+                              <Badge key={index} variant="outline" className="text-[11px] bg-purple-50 text-purple-700 border-purple-200">
+                                {cls}
+                              </Badge>
+                            ))}
+                            {clsList.length > 2 && (
+                              <Badge variant="outline" className="text-[11px] bg-purple-50 text-purple-700 border-purple-200">
+                                +{clsList.length - 2}
+                              </Badge>
+                            )}
+                            {clsList.length === 0 && <span className="text-[11px] text-slate-400">—</span>}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs font-medium text-slate-900">{teacher.experience}</div>
+                      <div className="text-xs font-medium text-slate-900">{teacher.experience || '—'}</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={teacher.status === 'Active' ? 'default' : 'secondary'} 
                              className={teacher.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs' : 'bg-amber-50 text-amber-700 border-amber-200 text-xs'}>
-                        {teacher.status}
+                        {teacher.status || 'Active'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right pr-6">

@@ -155,7 +155,13 @@ export function PayslipManagement({ teachers }: PayslipManagementProps) {
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={teacher.avatar} />
                           <AvatarFallback className="bg-indigo-50 text-indigo-700 font-medium text-xs">
-                            {teacher.name.split(' ').map(n => n[0]).join('')}
+                            {(teacher.name || 'Staff')
+                              .split(' ')
+                              .filter(Boolean)
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2) || 'T'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -296,7 +302,11 @@ export function PayslipManagement({ teachers }: PayslipManagementProps) {
                 </div>
                 <div>
                   <div className="text-xs text-slate-500 uppercase">Department</div>
-                  <div className="font-semibold text-slate-900">{selectedPayslip.teacher.department}</div>
+                  <div className="font-semibold text-slate-900">
+                    {typeof selectedPayslip.teacher.department === 'object' && selectedPayslip.teacher.department
+                      ? (selectedPayslip.teacher.department as any).name
+                      : String(selectedPayslip.teacher.department || 'General')}
+                  </div>
                 </div>
               </div>
 

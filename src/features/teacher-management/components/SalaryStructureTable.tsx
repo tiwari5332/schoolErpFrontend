@@ -163,12 +163,20 @@ export function SalaryStructureTable({ teachers }: SalaryStructureTableProps) {
                         <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                           <AvatarImage src={teacher.avatar} />
                           <AvatarFallback className="bg-emerald-50 text-emerald-700 font-medium text-xs">
-                            {teacher.name.split(' ').map(n => n[0]).join('')}
+                            {(teacher.name || 'Staff')
+                              .split(' ')
+                              .filter(Boolean)
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2) || 'T'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-slate-900">{teacher.name}</div>
-                          <div className="text-xs text-slate-500">{teacher.id} • {teacher.department}</div>
+                          <div className="text-xs text-slate-500">
+                            {teacher.id} • {typeof teacher.department === 'object' && teacher.department ? (teacher.department as any).name : String(teacher.department || 'General')}
+                          </div>
                         </div>
                       </div>
                     </TableCell>

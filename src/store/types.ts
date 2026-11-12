@@ -38,4 +38,7 @@ export interface AuthActions {
 
 export type AuthSlice = AuthSession & AuthActions;
 
-export type AppStoreState = UISlice & AuthSlice;
+export type { SessionSlice, SessionState, SessionActions } from './slices/sessionSlice';
+import type { SessionSlice } from './slices/sessionSlice';
+
+export type AppStoreState = UISlice & AuthSlice & SessionSlice;
